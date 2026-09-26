@@ -1,110 +1,159 @@
 local Module = {}
 
-Module.List = {}
-
 function Module.Create(Hub, tab, name)
-    local T = Hub.Theme
     local W = Hub.State.Window
+    local T = Hub.Theme
 
     local mod = {
         Name = name,
         Tab = tab,
+        Hub = Hub,
         Open = false,
         Enabled = false,
         Elements = {},
-        Keybind = nil,
-        Y = 0,
-        Height = 0,
+        Index = #tab.Modules + 1,
+        BaseY = 0,
     }
 
-    local index = #Module.List
-    local baseY = W.Pos.Y + 70 + index * 46
-    mod.Y = baseY
+    local function newObj(class, props)
+        local o = Drawing.new(class)
+        for k, v in pairs(props) do o[k] = v end
+        o.Visible = false
+        return o
+    end
 
-    local head = Drawing.new("Square")
-    head.Size = Vector2.new(540, 38)
-    head.Position = Vector2.new(W.Pos.X + 180, mod.Y)
-    head.Color = T.Item
-    head.Filled = true
-    head.Visible = true
+    mod.Head = newObj("Square", {
+        Size = Vector2.new(430, 36),
+        Color = T.Item,
+        Filled = true,
+    })
 
-    local dot = Drawing.new("Circle")
-    dot.Radius = 5
-    dot.Filled = true
-    dot.Color = T.Red
-    dot.Position = Vector2.new(W.Pos.X + 200, mod.Y + 19)
-    dot.Visible = true
+    mod.Dot = newObj("Circle", {
+        Radius = 6,
+        Filled = true,
+        Color = T.Red,
+    })
 
-    local txt = Drawing.new("Text")
-    txt.Text = name
-    txt.Size = 14
-    txt.Center = false
-    txt.Outline = true
-    txt.Color = T.Text
-    txt.Position = Vector2.new(W.Pos.X + 220, mod.Y + 12)
-    txt.Visible = true
+    mod.DotHalo = newObj("Circle", {
+        Radius = 10,
+        Filled = false,
+        Thickness = 2,
+        Color = T.Red,
+        Transparency = 0.6,
+    })
 
-    local expand = Drawing.new("Square")
-    expand.Size = Vector2.new(30, 26)
-    expand.Position = Vector2.new(W.Pos.X + 640, mod.Y + 6)
-    expand.Color = Color3.fromRGB(60, 60, 80)
-    expand.Filled = true
-    expand.Visible = true
+    mod.Label = newObj("Text", {
+        Text = name,
+        Size = 14,
+        Center = false,
+        Outline = true,
+        Color = T.Text,
+    })
 
-    local expandTxt = Drawing.new("Text")
-    expandTxt.Text = "v"
-    expandTxt.Size = 14
-    expandTxt.Center = true
-    expandTxt.Outline = true
-    expandTxt.Color = T.Text
-    expandTxt.Position = Vector2.new(W.Pos.X + 655, mod.Y + 12)
-    expandTxt.Visible = true
+    mod.ExpandBtn = newObj("Square", {
+        Size = Vector2.new(26, 24),
+        Color = Color3.fromRGB(50, 50, 65),
+        Filled = true,
+    })
 
-    local bind = Drawing.new("Square")
-    bind.Size = Vector2.new(30, 26)
-    bind.Position = Vector2.new(W.Pos.X + 680, mod.Y + 6)
-    bind.Color = Color3.fromRGB(60, 60, 80)
-    bind.Filled = true
-    bind.Visible = true
+    mod.ExpandTxt = newObj("Text", {
+        Text = "v",
+        Size = 14,
+        Center = true,
+        Outline = true,
+        Color = T.Text,
+    })
 
-    local bindTxt = Drawing.new("Text")
-    bindTxt.Text = "+"
-    bindTxt.Size = 14
-    bindTxt.Center = true
-    bindTxt.Outline = true
-    bindTxt.Color = T.Text
-    bindTxt.Position = Vector2.new(W.Pos.X + 695, mod.Y + 12)
-    bindTxt.Visible = true
+    mod.BindBtn = newObj("Square", {
+        Size = Vector2.new(26, 24),
+        Color = Color3.fromRGB(50, 50, 65),
+        Filled = true,
+    })
 
-    mod.Draw = {
-        Head = head,
-        Dot = dot,
-        Text = txt,
-        Expand = expand,
-        ExpandTxt = expandTxt,
-        Bind = bind,
-        BindTxt = bindTxt,
+    mod.BindTxt = newObj("Text", {
+        Text = "+",
+        Size = 14,
+        Center = true,
+        Outline = true,
+        Color = T.Text,
+    })
+
+    mod.Objects = {
+        mod.Head, mod.Dot, mod.DotHalo, mod.Label,
+        mod.ExpandBtn, mod.ExpandTxt, mod.BindBtn, mod.BindTxt,
     }
 
-    mod.SetVisible = function(v)
-        for _, o in pairs(mod.Draw) do o.Visible = v end
-        for _, el in ipairs(mod.Elements) do
-            if el.SetVisible then el.SetVisible(v) end
+    mod.UpdatePositions = function()
+        local x = W.Pos.X + 170
+        local y = W.Pos.Y + 60 + (mod.Index - 1) * 46
+
+        if mod.Tab ~= W.ActiveTab then
+            mod.BaseY = -9999
+            return
+        end
+
+        for _, m in ipairs(tab.Modules) do
+            if m ~= mod and m.Index < mod.Index and m.Open then
+                y = y + m.OpenHeight or y
+            end
+        end
+
+        mod.BaseY = y
+
+        mod.Head.Position = Vector2.new(x, y)
+        mod.Dot.Position = Vector2.new(x + 18, y + 18)
+        mod.DotHalo.Position = Vector2.new(x + 18, y + 18)
+        mod.Label.Position = Vector2.new(x + 38, y + 11)
+        mod.ExpandBtn.Position = Vector2.new(x + 430 - 60, y + 6)
+        mod.ExpandTxt.Position = Vector2.new(x + 430 - 47, y + 12)
+        mod.BindBtn.Position = Vector2.new(x + 430 - 30, y + 6)
+        mod.BindTxt.Position = Vector2.new(x + 430 - 17, y + 12)
+
+        for i, el in ipairs(mod.Elements) do
+            if el.UpdatePositions then
+                el.UpdatePositions(y + 40 + (i - 1) * 30, x)
+            end
         end
     end
 
-    mod.SetEnabled = function(v)
-        mod.Enabled = v
-        dot.Color = v and T.Green or T.Red
+    mod.Show = function()
+        for _, o in ipairs(mod.Objects) do o.Visible = true end
+        if mod.Open then
+            for _, el in ipairs(mod.Elements) do
+                if el.Show then el.Show() end
+            end
+        end
+        mod.UpdatePositions()
+    end
+
+    mod.Hide = function()
+        for _, o in ipairs(mod.Objects) do o.Visible = false end
+        for _, el in ipairs(mod.Elements) do
+            if el.Hide then el.Hide() end
+        end
     end
 
     mod.Toggle = function()
-        mod.SetEnabled(not mod.Enabled)
+        mod.Enabled = not mod.Enabled
+        local c = mod.Enabled and T.Green or T.Red
+        mod.Dot.Color = c
+        mod.DotHalo.Color = c
     end
 
-    table.insert(Module.List, mod)
-    table.insert(tab.Modules, mod)
+    mod.SetOpen = function(open)
+        mod.Open = open
+        mod.ExpandTxt.Text = open and "^" or "v"
+        for _, el in ipairs(mod.Elements) do
+            if open then
+                if el.Show then el.Show() end
+            else
+                if el.Hide then el.Hide() end
+            end
+        end
+        if mod.Tab then mod.Tab.UpdatePositions() end
+    end
 
+    table.insert(tab.Modules, mod)
     return mod
 end
 
