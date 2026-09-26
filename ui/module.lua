@@ -66,7 +66,6 @@ function Module.Create(Hub, W, tab, name)
     expand.AutoButtonColor = false
     expand.Parent = head
     U.Corner(expand, UDim.new(0, 6))
-    expand:SetAttribute("OrigSize", UDim2.new(0, 26, 0, 26))
 
     local bind = Instance.new("TextButton")
     bind.Size = UDim2.new(0, 26, 0, 26)
@@ -81,7 +80,6 @@ function Module.Create(Hub, W, tab, name)
     bind.AutoButtonColor = false
     bind.Parent = head
     U.Corner(bind, UDim.new(0, 6))
-    bind:SetAttribute("OrigSize", UDim2.new(0, 26, 0, 26))
 
     local settings = Instance.new("ScrollingFrame")
     settings.Size = UDim2.new(1, -16, 0, 0)
@@ -114,6 +112,7 @@ function Module.Create(Hub, W, tab, name)
         Enabled = false,
         Open = false,
         Bind = nil,
+        Listening = false,
     }
 
     local dotClick = Instance.new("TextButton")
@@ -215,59 +214,58 @@ function Module.Create(Hub, W, tab, name)
         expand.Text = mod.Open and "^" or "v"
     end)
 
-    local listening = false
-    local listenStartTime = 0
-    local listenTimeout = nil
-
     local function startListening()
-        listening = true
-        listenStartTime = tick()
+        mod.Listening = true
         bind.Text = "..."
-        W.Pulse(bind)
-        TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
-
-        if listenTimeout then task.cancel(listenTimeout) end
-        listenTimeout = task.delay(5, function()
-            if listening then
-                listening = false
-                bind.Text = "+"
-                TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Panel}):Play()
-            end
-        end)
+        bind.BackgroundColor3 = T.Accent
     end
 
     local function stopListening(keyName, keyCode)
-        listening = false
-        if listenTimeout then task.cancel(listenTimeout) end
+        mod.Listening = false
         mod.Bind = keyCode
         bind.Text = keyName
-        W.Pulse(bind)
-        TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
-        task.delay(0.5, function()
-            TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
+        bind.BackgroundColor3 = T.Green
+        task.delay(0.6, function()
+            if not mod.Listening then
+                bind.BackgroundColor3 = T.Panel
+            end
         end)
         if mod.OnBind then mod.OnBind(keyCode) end
     end
 
+    local function cancelListening()
+        mod.Listening = false
+        bind.Text = "+"
+        bind.BackgroundColor3 = T.Panel
+    end
+
     bind.MouseButton1Click:Connect(function()
-        if listening then
-            listening = false
-            if listenTimeout then task.cancel(listenTimeout) end
-            bind.Text = "+"
-            TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Panel}):Play()
-            return
+        if mod.Listening then
+            cancelListening()
+        else
+            startListening()
         end
-        startListening()
     end)
 
     UserInputService.InputBegan:Connect(function(input, gpe)
-        if not listening then return end
-        if tick() - listenStartTime < 0.15 then return end
+        if not mod.Listening then return end
 
         if input.UserInputType == Enum.UserInputType.Keyboard then
             if input.KeyCode == Enum.KeyCode.Unknown then return end
+            if input.KeyCode == Enum.KeyCode.Escape then
+                cancelListening()
+                return
+            end
             stopListening(input.KeyCode.Name, input.KeyCode)
         elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if bind:IsA("TextButton") then
+                local m = UserInputService:GetMouseLocation()
+                local abs = bind.AbsolutePosition
+                local absSize = bind.AbsoluteSize
+                if m.X >= abs.X and m.X <= abs.X + absSize.X and m.Y >= abs.Y and m.Y <= abs.Y + absSize.Y then
+                    return
+                end
+            end
             stopListening("LMB", "LMB")
         elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
             stopListening("RMB", "RMB")
