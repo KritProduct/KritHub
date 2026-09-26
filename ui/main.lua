@@ -169,6 +169,19 @@ function UI.Build(Hub)
         if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
+    local xray = Module.Create(Hub, W, visualsTab, "Xray")
+    xray.OnToggle = function(v)
+        if Hub.Features.Xray then
+            if v then Hub.Features.Xray.Enable() else Hub.Features.Xray.Disable() end
+        end
+    end
+    Slider(Hub, W, xray, "Transparency", 10, 100, 50, function(v)
+        if Hub.Features.Xray then Hub.Features.Xray.SetTransparency(v / 100) end
+    end)
+    Button(Hub, W, xray, "Refresh Walls", function()
+        if Hub.Features.Xray then Hub.Features.Xray.Refresh() end
+    end)
+
     local miscTab = TabsM.Create("Misc")
 
     local rejoinMod = Module.Create(Hub, W, miscTab, "Rejoin")
@@ -193,6 +206,34 @@ function UI.Build(Hub)
     end)
     Toggle(Hub, W, afkMod, "Click", true, function(v)
         if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
+    end)
+
+    local hudTab = TabsM.Create("HUD")
+
+    local wmMod = Module.Create(Hub, W, hudTab, "Watermark")
+    wmMod.OnToggle = function(v)
+        if Hub.Features.Watermark then
+            if v then Hub.Features.Watermark.Enable() else Hub.Features.Watermark.Disable() end
+        end
+    end
+    Toggle(Hub, W, wmMod, "Show FPS", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowFPS = v end end)
+    Toggle(Hub, W, wmMod, "Show Ping", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowPing = v end end)
+    Toggle(Hub, W, wmMod, "Show Username", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowUsername = v end end)
+    Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
+
+    Toggle(Hub, W, afkMod, "Click", true, function(v)
+        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
+    end)
+
+    local cfgMod = Module.Create(Hub, W, miscTab, "Config")
+    Button(Hub, W, cfgMod, "Save Config", function()
+        if Hub.Features.Config then Hub.Features.Config.Save() end
+    end)
+    Button(Hub, W, cfgMod, "Load Config", function()
+        if Hub.Features.Config then Hub.Features.Config.Load() end
+    end)
+    Button(Hub, W, cfgMod, "Delete Config", function()
+        if Hub.Features.Config then Hub.Features.Config.Delete() end
     end)
 
     local spacer = Instance.new("Frame")
