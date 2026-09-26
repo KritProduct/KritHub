@@ -4,12 +4,10 @@ return function(Hub)
     local CC = {}
 
     local cc = Lighting:FindFirstChild("KritHubCC")
-    local created = false
     if not cc then
         cc = Instance.new("ColorCorrectionEffect")
         cc.Name = "KritHubCC"
         cc.Parent = Lighting
-        created = true
     end
 
     local original = {
@@ -28,10 +26,21 @@ return function(Hub)
     local heartbeatConn = nil
     local propConns = {}
 
+    local function ensureCC()
+        if not cc or not cc.Parent then
+            cc = Instance.new("ColorCorrectionEffect")
+            cc.Name = "KritHubCC"
+            cc.Parent = Lighting
+            cc.Brightness = CC.Brightness
+            cc.Contrast = CC.Contrast
+            cc.Saturation = CC.Saturation
+            cc.TintColor = CC.TintColor
+        end
+    end
+
     local function enforce()
         if not CC.Enabled then return end
-        if cc.Parent == nil then return end
-
+        ensureCC()
         if math.abs(cc.Brightness - CC.Brightness) > 0.01 then cc.Brightness = CC.Brightness end
         if math.abs(cc.Contrast - CC.Contrast) > 0.01 then cc.Contrast = CC.Contrast end
         if math.abs(cc.Saturation - CC.Saturation) > 0.01 then cc.Saturation = CC.Saturation end
@@ -39,6 +48,9 @@ return function(Hub)
     end
 
     local function hookProps()
+        for _, c in ipairs(propConns) do c:Disconnect() end
+        propConns = {}
+        ensureCC()
         for _, prop in ipairs({"Brightness", "Contrast", "Saturation", "TintColor"}) do
             table.insert(propConns, cc:GetPropertyChangedSignal(prop):Connect(function()
                 if CC.Enabled then task.defer(enforce) end
@@ -52,24 +64,13 @@ return function(Hub)
     end
 
     function CC.Enable()
-        if cc.Parent == nil then
-            cc = Lighting:FindFirstChild("KritHubCC")
-            if not cc then
-                cc = Instance.new("ColorCorrectionEffect")
-                cc.Name = "KritHubCC"
-                cc.Parent = Lighting
-                created = true
-            end
-        end
-
         CC.Enabled = true
+        ensureCC()
         cc.Brightness = CC.Brightness
         cc.Contrast = CC.Contrast
         cc.Saturation = CC.Saturation
         cc.TintColor = CC.TintColor
-
         hookProps()
-
         if not heartbeatConn then
             heartbeatConn = RunService.Heartbeat:Connect(enforce)
         end
@@ -79,38 +80,32 @@ return function(Hub)
         CC.Enabled = false
         unhookProps()
         if heartbeatConn then heartbeatConn:Disconnect() heartbeatConn = nil end
-
         if cc and cc.Parent then
             cc.Brightness = original.Brightness
             cc.Contrast = original.Contrast
             cc.Saturation = original.Saturation
             cc.TintColor = original.TintColor
         end
-
-        if created and cc then
-            task.delay(0.1, function() if cc then cc:Destroy() end end)
-            cc = nil
-        end
     end
 
     function CC.SetBrightness(v)
         CC.Brightness = v
-        if CC.Enabled and cc then cc.Brightness = v end
+        if CC.Enabled then ensureCC() cc.Brightness = v end
     end
 
     function CC.SetContrast(v)
         CC.Contrast = v
-        if CC.Enabled and cc then cc.Contrast = v end
+        if CC.Enabled then ensureCC() cc.Contrast = v end
     end
 
     function CC.SetSaturation(v)
         CC.Saturation = v
-        if CC.Enabled and cc then cc.Saturation = v end
+        if CC.Enabled then ensureCC() cc.Saturation = v end
     end
 
     function CC.SetTint(c)
         CC.TintColor = c
-        if CC.Enabled and cc then cc.TintColor = c end
+        if CC.Enabled then ensureCC() cc.TintColor = c end
     end
 
     return CC
