@@ -10,6 +10,7 @@ function UI.Build(Hub)
     local Slider = Hub.UI.Elements.Slider
     local ColorPicker = Hub.UI.Elements.ColorPicker
     local Dropdown = Hub.UI.Elements.Dropdown
+    local Button = Hub.UI.Elements.Button
 
     local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
     for _, g in ipairs(pg:GetChildren()) do
@@ -168,8 +169,37 @@ function UI.Build(Hub)
         if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
+    local miscTab = TabsM.Create("Misc")
+
+    local rejoinMod = Module.Create(Hub, W, miscTab, "Rejoin")
+    Button(Hub, W, rejoinMod, "Rejoin Now", function()
+        if Hub.Features.Rejoin then Hub.Features.Rejoin.DoRejoin() end
+    end)
+
+    local afkMod = Module.Create(Hub, W, miscTab, "Anti AFK")
+    afkMod.OnToggle = function(v)
+        if Hub.Features.AntiAFK then
+            if v then Hub.Features.AntiAFK.Enable() else Hub.Features.AntiAFK.Disable() end
+        end
+    end
+    Slider(Hub, W, afkMod, "Interval (sec)", 1, 20, 5, function(v)
+        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.Interval = v end
+    end)
+    Toggle(Hub, W, afkMod, "Rotate Head", true, function(v)
+        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoRotate = v end
+    end)
+    Toggle(Hub, W, afkMod, "Jump", false, function(v)
+        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoJump = v end
+    end)
+    Toggle(Hub, W, afkMod, "Click", true, function(v)
+        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
+    end)
+
     combatTab.Select(false)
     for _, m in pairs(visualsTab.Modules) do
+        m.Frame.Visible = false
+    end
+    for _, m in pairs(miscTab.Modules) do
         m.Frame.Visible = false
     end
     Hub.State.PrevTab = combatTab
