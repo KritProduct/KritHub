@@ -10,15 +10,12 @@ return function(Hub)
 
     local function killGui(g)
         if not g:IsA("ScreenGui") then return end
-        local n = string.lower(g.Name)
-        if string.find(n, "flash", 1, true) then
+        if g.Name == "FlashbangEffect" then
             for _, d in ipairs(g:GetDescendants()) do
                 pcall(function()
-                    if d:IsA("Frame") or d:IsA("ImageLabel") or d:IsA("TextLabel") then
-                        d.Visible = false
+                    if d:IsA("Frame") then
                         d.BackgroundTransparency = 1
-                        if d:IsA("ImageLabel") then d.ImageTransparency = 1 end
-                        if d:IsA("TextLabel") then d.TextTransparency = 1 end
+                        d.Visible = false
                     end
                 end)
             end
@@ -29,9 +26,7 @@ return function(Hub)
 
     local function suppressLighting()
         local Lighting = game:GetService("Lighting")
-
         if Lighting.Brightness > 1 then Lighting.Brightness = 0 end
-
         for _, e in ipairs(Lighting:GetChildren()) do
             if e:IsA("BloomEffect") and e.Enabled then e.Enabled = false end
             if e:IsA("ColorCorrectionEffect") then
@@ -54,7 +49,6 @@ return function(Hub)
         AntiFlash.Enabled = true
 
         local pg = LocalPlayer:WaitForChild("PlayerGui")
-
         scanAll(pg)
 
         table.insert(connections, pg.ChildAdded:Connect(function(c)
@@ -63,16 +57,9 @@ return function(Hub)
 
         table.insert(connections, pg.DescendantAdded:Connect(function(d)
             if not AntiFlash.Enabled then return end
-            if d.Name == "FlashOverlay" or d.Name == "ScreenshotImage" then
-                pcall(function()
-                    d.Visible = false
-                    d.BackgroundTransparency = 1
-                    if d:IsA("ImageLabel") then d.ImageTransparency = 1 end
-                end)
-            end
             local parent = d.Parent
             while parent do
-                if parent:IsA("ScreenGui") and string.find(string.lower(parent.Name), "flash", 1, true) then
+                if parent:IsA("ScreenGui") and parent.Name == "FlashbangEffect" then
                     killGui(parent)
                     break
                 end
