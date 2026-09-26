@@ -63,9 +63,6 @@ function UI.Build(Hub)
     Dropdown(Hub, W, trig, "Target Mode", {"Head", "Torso", "Both"}, "Head", function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetMode = v end
     end)
-    Slider(Hub, W, trig, "Aim Radius (px)", 5, 100, 30, function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.PixelThreshold = v end
-    end)
     Slider(Hub, W, trig, "Shot Delay (ms)", 0, 500, 100, function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.ShotDelay = v end
     end)
