@@ -88,6 +88,10 @@ function Tabs.Create(Hub, W)
             end
 
             Hub.State.PrevTab = tab
+
+            task.delay(0.35, function()
+                if W.RecalcCanvas then W.RecalcCanvas() end
+            end)
         end
 
         btn.MouseButton1Click:Connect(function() selectThis(true) end)

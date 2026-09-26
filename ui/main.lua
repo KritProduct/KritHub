@@ -206,6 +206,10 @@ function UI.Build(Hub)
 
     W.FadeIn()
 
+    task.delay(0.5, function()
+        if W.RecalcCanvas then W.RecalcCanvas() end
+    end)
+
     print("[KritHub] GUI built")
 end
 

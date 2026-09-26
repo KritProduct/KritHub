@@ -158,7 +158,7 @@ function Window.Create(Hub)
     W.ContentScroll.ScrollBarThickness = 6
     W.ContentScroll.ScrollBarImageColor3 = T.Accent
     W.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.None
     W.ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
     W.ContentScroll.ZIndex = 3
@@ -220,6 +220,21 @@ function Window.Create(Hub)
                 TweenService:Create(btn, TweenInfo.new(0.1), {Size = orig}):Play()
             end)
         end)
+    end
+
+    function W.RecalcCanvas()
+        local scroll = W.ContentScroll
+        if not scroll then return end
+
+        local maxY = 0
+        for _, child in ipairs(scroll:GetChildren()) do
+            if child:IsA("GuiObject") and child.Visible then
+                local bottom = child.Position.Y.Offset + child.Size.Y.Offset
+                if bottom > maxY then maxY = bottom end
+            end
+        end
+
+        scroll.CanvasSize = UDim2.new(0, 0, 0, maxY + 20)
     end
 
     function W.FadeIn()

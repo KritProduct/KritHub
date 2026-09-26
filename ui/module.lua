@@ -158,6 +158,16 @@ function Module.Create(Hub, W, tab, name)
     expand.MouseLeave:Connect(function()
         TweenService:Create(expand, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
     end)
+    bind.MouseEnter:Connect(function()
+        if not mod.Listening then
+            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+        end
+    end)
+    bind.MouseLeave:Connect(function()
+        if not mod.Listening then
+            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
+        end
+    end)
 
     expand.MouseButton1Click:Connect(function()
         mod.Open = not mod.Open
@@ -202,6 +212,10 @@ function Module.Create(Hub, W, tab, name)
             TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 0}):Play()
         end
         expand.Text = mod.Open and "^" or "v"
+
+        task.delay(0.4, function()
+            if W.RecalcCanvas then W.RecalcCanvas() end
+        end)
     end)
 
     local function startListening()
@@ -219,6 +233,7 @@ function Module.Create(Hub, W, tab, name)
 
     local function cancelListening()
         mod.Listening = false
+        mod.Bind = nil
         bind.Text = "+"
         bind.BackgroundColor3 = T.Panel
     end
@@ -278,6 +293,11 @@ function Module.Create(Hub, W, tab, name)
 
     table.insert(tab.Modules, mod)
     Hub.State.RegisterModule(name, mod)
+
+    task.delay(0.1, function()
+        if W.RecalcCanvas then W.RecalcCanvas() end
+    end)
+
     return mod
 end
 
