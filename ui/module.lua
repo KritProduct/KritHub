@@ -81,16 +81,11 @@ function Module.Create(Hub, W, tab, name)
     bind.Parent = head
     U.Corner(bind, UDim.new(0, 6))
 
-    local settings = Instance.new("ScrollingFrame")
+    local settings = Instance.new("Frame")
     settings.Size = UDim2.new(1, -16, 0, 0)
     settings.Position = UDim2.new(0, 8, 0, 44)
     settings.BackgroundTransparency = 1
-    settings.BorderSizePixel = 0
-    settings.ScrollBarThickness = 4
-    settings.ScrollBarImageColor3 = T.Accent
-    settings.CanvasSize = UDim2.new(0, 0, 0, 0)
-    settings.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    settings.ScrollingDirection = Enum.ScrollingDirection.Y
+    settings.ClipsDescendants = true
     settings.ZIndex = 4
     settings.Parent = frame
 
@@ -212,8 +207,7 @@ function Module.Create(Hub, W, tab, name)
             TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 0}):Play()
         end
         expand.Text = mod.Open and "^" or "v"
-
-        end)
+    end)
 
     local function startListening()
         mod.Listening = true
