@@ -235,7 +235,9 @@ function Module.Create(Hub, W, tab, name)
         if mod.Listening then
             if input.UserInputType == Enum.UserInputType.Keyboard then
                 if input.KeyCode == Enum.KeyCode.Unknown then return end
-                if input.KeyCode == Enum.KeyCode.Escape then
+                if input.KeyCode == Enum.KeyCode.Escape
+                   or input.KeyCode == Enum.KeyCode.Delete
+                   or input.KeyCode == Enum.KeyCode.Space then
                     cancelListening()
                     return
                 end
