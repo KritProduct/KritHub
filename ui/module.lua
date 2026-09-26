@@ -213,10 +213,7 @@ function Module.Create(Hub, W, tab, name)
         end
         expand.Text = mod.Open and "^" or "v"
 
-        task.delay(0.4, function()
-            if W.RecalcCanvas then W.RecalcCanvas() end
         end)
-    end)
 
     local function startListening()
         mod.Listening = true
@@ -293,10 +290,6 @@ function Module.Create(Hub, W, tab, name)
 
     table.insert(tab.Modules, mod)
     Hub.State.RegisterModule(name, mod)
-
-    task.delay(0.1, function()
-        if W.RecalcCanvas then W.RecalcCanvas() end
-    end)
 
     return mod
 end
