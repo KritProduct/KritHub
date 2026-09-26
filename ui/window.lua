@@ -101,7 +101,7 @@ function Window.Create(Hub)
     W.MinBtn.Position = UDim2.new(1, -80, 0, 11)
     W.MinBtn.BackgroundColor3 = T.Item
     W.MinBtn.BorderSizePixel = 0
-    W.MinBtn.Text = "вЂ”"
+    W.MinBtn.Text = "РІР‚вЂќ"
     W.MinBtn.TextColor3 = T.Text
     W.MinBtn.Font = Enum.Font.GothamBold
     W.MinBtn.TextSize = 16
