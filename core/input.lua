@@ -1,4 +1,4 @@
-﻿local Input = {}
+local Input = {}
 
 Input.Dragging = false
 Input.DragStart = nil

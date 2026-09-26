@@ -1,4 +1,4 @@
-﻿local Tabs = {}
+local Tabs = {}
 
 Tabs.List = {}
 Tabs.Buttons = {}

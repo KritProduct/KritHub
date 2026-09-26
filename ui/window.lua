@@ -1,4 +1,4 @@
-﻿local Window = {}
+local Window = {}
 
 Window.Frame = nil
 Window.Border = nil

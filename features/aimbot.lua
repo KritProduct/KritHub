@@ -1,4 +1,4 @@
-﻿return function(Hub)
+return function(Hub)
     local Aimbot = {}
 
     Aimbot.Enabled = false

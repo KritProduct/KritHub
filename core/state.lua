@@ -1,4 +1,4 @@
-﻿local State = {}
+local State = {}
 
 State.Modules = {}
 State.Tabs = {}

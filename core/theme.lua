@@ -1,4 +1,4 @@
-﻿local Theme = {}
+local Theme = {}
 
 Theme.Accent = Color3.fromRGB(77, 141, 255)
 Theme.Background = Color3.fromRGB(14, 14, 19)

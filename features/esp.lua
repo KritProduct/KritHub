@@ -1,4 +1,4 @@
-﻿return function(Hub)
+return function(Hub)
     local ESP = {}
 
     ESP.Enabled = false

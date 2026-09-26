@@ -1,4 +1,4 @@
-﻿return function(Hub, module, label, min, max, default, callback)
+return function(Hub, module, label, min, max, default, callback)
     local T = Hub.Theme
     local W = Hub.State.Window
 

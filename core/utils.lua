@@ -1,4 +1,4 @@
-﻿local Utils = {}
+local Utils = {}
 
 function Utils.Inside(pos, size, point)
     return point.X >= pos.X and point.X <= pos.X + size.X

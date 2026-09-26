@@ -1,4 +1,4 @@
-﻿return function(Hub)
+return function(Hub)
     local Tab = Hub.Tabs.Create(Hub, "Combat")
 
     local AimMod = Hub.Module.Create(Hub, Tab, "Aimbot")

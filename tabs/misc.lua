@@ -1,4 +1,4 @@
-﻿return function(Hub)
+return function(Hub)
     local Tab = Hub.Tabs.Create(Hub, "Misc")
 
     local ThemeMod = Hub.Module.Create(Hub, Tab, "Theme")
