@@ -49,6 +49,12 @@ local rejoin = load("features/rejoin.lua")
 if rejoin then Hub.Features.Rejoin = rejoin(Hub) end
 local antiafk = load("features/antiafk.lua")
 if antiafk then Hub.Features.AntiAFK = antiafk(Hub) end
+local xray = load("features/xray.lua")
+if xray then Hub.Features.Xray = xray(Hub) end
+local watermark = load("features/watermark.lua")
+if watermark then Hub.Features.Watermark = watermark(Hub) end
+local config = load("features/config.lua")
+if config then Hub.Features.Config = config(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
