@@ -2,6 +2,8 @@ local UI = {}
 
 function UI.Build(Hub)
     local Players = game:GetService("Players")
+    local T = Hub.Theme
+    local U = Hub.Utils
 
     local Window = Hub.UI.Window
     local Tabs = Hub.UI.Tabs
@@ -21,6 +23,43 @@ function UI.Build(Hub)
 
     local TabsM = Tabs.Create(Hub, W)
     Hub.State.TabsMaster = TabsM
+
+    local cfgBtn = Instance.new("TextButton")
+    cfgBtn.Name = "CfgButton"
+    cfgBtn.Size = UDim2.new(0, 50, 0, 26)
+    cfgBtn.Position = UDim2.new(1, -122, 0, 11)
+    cfgBtn.BackgroundColor3 = T.Accent
+    cfgBtn.BorderSizePixel = 0
+    cfgBtn.Text = "CFG"
+    cfgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cfgBtn.Font = Enum.Font.GothamBold
+    cfgBtn.TextSize = 12
+    cfgBtn.ZIndex = 10
+    cfgBtn.AutoButtonColor = false
+    cfgBtn.Parent = W.Header
+    U.Corner(cfgBtn, UDim.new(0, 8))
+
+    local ConfigWindow = Hub.UI.ConfigWindow
+    local cw = nil
+    if ConfigWindow then
+        cw = ConfigWindow.Create(Hub, W)
+        Hub.UI.ConfigsRef = cw
+    end
+
+    cfgBtn.MouseButton1Click:Connect(function()
+        if cw then
+            cw.Toggle()
+        else
+            warn("[KritHub] ConfigWindow not loaded")
+        end
+    end)
+
+    cfgBtn.MouseEnter:Connect(function()
+        cfgBtn.BackgroundColor3 = T.ItemHover
+    end)
+    cfgBtn.MouseLeave:Connect(function()
+        cfgBtn.BackgroundColor3 = T.Accent
+    end)
 
     local combatTab = TabsM.Create("Combat")
 
@@ -244,31 +283,7 @@ function UI.Build(Hub)
 
     W.FadeIn()
 
-    local ConfigWindow = Hub.UI.ConfigWindow
-    if ConfigWindow then
-        local cw = ConfigWindow.Create(Hub, W)
-        Hub.UI.ConfigsRef = cw
-
-        local cfgBtn = Instance.new("TextButton")
-        cfgBtn.Size = UDim2.new(0, 50, 0, 26)
-        cfgBtn.Position = UDim2.new(1, -120, 0, 11)
-        cfgBtn.BackgroundColor3 = T.Accent
-        cfgBtn.BorderSizePixel = 0
-        cfgBtn.Text = "CFG"
-        cfgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        cfgBtn.Font = Enum.Font.GothamBold
-        cfgBtn.TextSize = 12
-        cfgBtn.ZIndex = 4
-        cfgBtn.AutoButtonColor = false
-        cfgBtn.Parent = W.Header
-        U.Corner(cfgBtn, UDim.new(0, 8))
-
-        cfgBtn.MouseButton1Click:Connect(function()
-            cw.Toggle()
-        end)
-    end
-
-    print("[KritHub] GUI built")
+    print("[KritHub] GUI built, CFG button:", cfgBtn ~= nil)
 end
 
 return UI
