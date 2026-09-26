@@ -19,9 +19,8 @@ return function(Hub)
     FOVCircle.Color = Color3.fromRGB(255, 255, 255)
     FOVCircle.Transparency = 1
     FOVCircle.Filled = false
-    FOVCircle.Visible = false
     FOVCircle.Radius = Aimbot.FOV
-    FOVCircle.NumSides = 64
+    FOVCircle.Visible = false
 
     local function GetFolder()
         return workspace:FindFirstChild("Characters")
@@ -97,38 +96,37 @@ return function(Hub)
         return false
     end
 
-    local function GetAllTargets()
-        local list = {}
-        local folder = GetFolder()
-        if not folder then return list end
-        local myTeam = GetMyTeam()
-        for _, obj in ipairs(folder:GetChildren()) do
-            if obj:IsA("Model") and obj ~= LocalPlayer.Character and IsAlive(obj) then
-                if Aimbot.FriendCheck and myTeam then
-                    local t = GetTeam(obj)
-                    if t ~= myTeam then table.insert(list, obj) end
-                else
-                    table.insert(list, obj)
-                end
-            end
-        end
-        return list
-    end
-
     local function GetClosestTarget()
         local cam = workspace.CurrentCamera
         if not cam then return nil end
+
         local closest, closestDist = nil, Aimbot.FOV
         local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
-        for _, ch in ipairs(GetAllTargets()) do
-            local part = GetTargetPart(ch)
-            if part then
-                local sp, onScreen = cam:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local dist = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-                    if dist < closestDist and IsVisible(ch, part) then
-                        closest = part
-                        closestDist = dist
+
+        local folder = GetFolder()
+        if not folder then return nil end
+
+        local myTeam = GetMyTeam()
+
+        for _, ch in ipairs(folder:GetChildren()) do
+            if ch:IsA("Model") and ch ~= LocalPlayer.Character and IsAlive(ch) then
+                local isFriend = false
+                if Aimbot.FriendCheck and myTeam then
+                    local t = GetTeam(ch)
+                    if t == myTeam then isFriend = true end
+                end
+
+                if not isFriend then
+                    local part = GetTargetPart(ch)
+                    if part then
+                        local sp, onScreen = cam:WorldToViewportPoint(part.Position)
+                        if onScreen then
+                            local dist = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+                            if dist < closestDist and IsVisible(ch, part) then
+                                closest = part
+                                closestDist = dist
+                            end
+                        end
                     end
                 end
             end
@@ -156,7 +154,6 @@ return function(Hub)
         if Aimbot.Enabled and Aimbot.DrawFOV then
             FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
             FOVCircle.Radius = Aimbot.FOV
-            FOVCircle.Transparency = 1
             FOVCircle.Visible = true
         else
             FOVCircle.Visible = false
