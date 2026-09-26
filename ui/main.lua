@@ -9,6 +9,7 @@ function UI.Build(Hub)
     local Toggle = Hub.UI.Elements.Toggle
     local Slider = Hub.UI.Elements.Slider
     local ColorPicker = Hub.UI.Elements.ColorPicker
+    local Dropdown = Hub.UI.Elements.Dropdown
 
     local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
     for _, g in ipairs(pg:GetChildren()) do
@@ -21,23 +22,52 @@ function UI.Build(Hub)
     Hub.State.TabsMaster = TabsM
 
     local combatTab = TabsM.Create("Combat")
+
     local aim = Module.Create(Hub, W, combatTab, "Aimbot")
     aim.OnToggle = function(v)
         if Hub.Features.Aimbot then
             if v then Hub.Features.Aimbot.Enable() else Hub.Features.Aimbot.Disable() end
         end
     end
+    Toggle(Hub, W, aim, "Draw FOV Circle", false, function(v)
+        if Hub.Features.Aimbot then Hub.Features.Aimbot.DrawFOV = v end
+    end)
     Toggle(Hub, W, aim, "Wall Check", false, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.WallCheck = v end
     end)
     Toggle(Hub, W, aim, "Ignore Teammates", true, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.FriendCheck = v end
     end)
+    Dropdown(Hub, W, aim, "Target Part", {"Head", "Torso", "Legs"}, "Head", function(v)
+        if Hub.Features.Aimbot then Hub.Features.Aimbot.TargetPart = v end
+    end)
     Slider(Hub, W, aim, "Field of View", 20, 800, 300, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.FOV = v end
     end)
     Slider(Hub, W, aim, "Aim Smoothness", 5, 100, 30, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.Speed = v / 100 end
+    end)
+
+    local trig = Module.Create(Hub, W, combatTab, "Trigger Bot")
+    trig.OnToggle = function(v)
+        if Hub.Features.TriggerBot then
+            if v then Hub.Features.TriggerBot.Enable() else Hub.Features.TriggerBot.Disable() end
+        end
+    end
+    Toggle(Hub, W, trig, "Shoot Teammates", false, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.Teammates = v end
+    end)
+    Toggle(Hub, W, trig, "Ignore Walls", false, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.WallCheck = not v end
+    end)
+    Dropdown(Hub, W, trig, "Mouse Button", {"LMB", "RMB"}, "RMB", function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.MouseButton = v end
+    end)
+    Dropdown(Hub, W, trig, "Target Part", {"Head", "Torso", "Legs"}, "Head", function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetPart = v end
+    end)
+    Slider(Hub, W, trig, "Shot Delay (ms)", 0, 500, 50, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.Delay = v end
     end)
 
     local visualsTab = TabsM.Create("Visuals")
@@ -63,12 +93,6 @@ function UI.Build(Hub)
             if v then Hub.Features.AntiFlash.Enable() else Hub.Features.AntiFlash.Disable() end
         end
     end
-    Toggle(Hub, W, afMod, "Hide Flashbang", true, function(v)
-        if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideOverlay = v end
-    end)
-    Toggle(Hub, W, afMod, "Hide Screenshot", true, function(v)
-        if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideScreenshot = v end
-    end)
 
     local timeMod = Module.Create(Hub, W, visualsTab, "Time Changer")
     timeMod.OnToggle = function(v)
