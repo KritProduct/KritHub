@@ -256,6 +256,30 @@ function UI.Build(Hub)
 
     W.FadeIn()
 
+    local ConfigWindow = Hub.UI.ConfigWindow
+    if ConfigWindow then
+        local cw = ConfigWindow.Create(Hub, W)
+        Hub.UI.ConfigsRef = cw
+
+        local cfgBtn = Instance.new("TextButton")
+        cfgBtn.Size = UDim2.new(0, 60, 0, 26)
+        cfgBtn.Position = UDim2.new(1, -130, 0, 11)
+        cfgBtn.BackgroundColor3 = T.Accent
+        cfgBtn.BorderSizePixel = 0
+        cfgBtn.Text = "CFG"
+        cfgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        cfgBtn.Font = Enum.Font.GothamBold
+        cfgBtn.TextSize = 12
+        cfgBtn.ZIndex = 4
+        cfgBtn.AutoButtonColor = false
+        cfgBtn.Parent = W.Header
+        U.Corner(cfgBtn, UDim.new(0, 8))
+
+        cfgBtn.MouseButton1Click:Connect(function()
+            cw.Toggle()
+        end)
+    end
+
     print("[KritHub] GUI built")
 end
 
