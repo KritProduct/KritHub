@@ -101,7 +101,7 @@ function Window.Create(Hub)
     W.MinBtn.Position = UDim2.new(1, -80, 0, 11)
     W.MinBtn.BackgroundColor3 = T.Item
     W.MinBtn.BorderSizePixel = 0
-    W.MinBtn.Text = "РІР‚вЂќ"
+    W.MinBtn.Text = "Р Р†Р вЂљРІР‚Сњ"
     W.MinBtn.TextColor3 = T.Text
     W.MinBtn.Font = Enum.Font.GothamBold
     W.MinBtn.TextSize = 16
@@ -158,9 +158,10 @@ function Window.Create(Hub)
     W.ContentScroll.ScrollBarThickness = 6
     W.ContentScroll.ScrollBarImageColor3 = T.Accent
     W.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.None
+    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     W.ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
-    W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+    W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.Always
+    W.ContentScroll.ScrollBarImageTransparency = 0.3
     W.ContentScroll.ZIndex = 3
     W.ContentScroll.Parent = W.Content
 
