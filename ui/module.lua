@@ -66,6 +66,7 @@ function Module.Create(Hub, W, tab, name)
     expand.AutoButtonColor = false
     expand.Parent = head
     U.Corner(expand, UDim.new(0, 6))
+    expand:SetAttribute("OrigSize", UDim2.new(0, 26, 0, 26))
 
     local bind = Instance.new("TextButton")
     bind.Size = UDim2.new(0, 26, 0, 26)
@@ -80,6 +81,7 @@ function Module.Create(Hub, W, tab, name)
     bind.AutoButtonColor = false
     bind.Parent = head
     U.Corner(bind, UDim.new(0, 6))
+    bind:SetAttribute("OrigSize", UDim2.new(0, 26, 0, 26))
 
     local settings = Instance.new("ScrollingFrame")
     settings.Size = UDim2.new(1, -16, 0, 0)
@@ -123,22 +125,25 @@ function Module.Create(Hub, W, tab, name)
     dotClick.AutoButtonColor = false
     dotClick.Parent = head
 
-    dotClick.MouseButton1Click:Connect(function()
-        mod.Enabled = not mod.Enabled
-        local c = mod.Enabled and T.Green or T.Red
+    local function setEnabled(v)
+        mod.Enabled = v
+        local c = v and T.Green or T.Red
         TweenService:Create(dot, TweenInfo.new(0.2), {BackgroundColor3 = c}):Play()
         TweenService:Create(dotGlow, TweenInfo.new(0.2), {BackgroundColor3 = c}):Play()
-
         dotGlow.BackgroundTransparency = 0.3
         TweenService:Create(dotGlow, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
+        if mod.OnToggle then mod.OnToggle(v) end
+    end
 
+    mod.SetEnabled = setEnabled
+
+    dotClick.MouseButton1Click:Connect(function()
         dot.Size = UDim2.new(0, 12, 0, 12)
         TweenService:Create(dot, TweenInfo.new(0.15), {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, 12, 0.5, -8)}):Play()
         task.delay(0.15, function()
             TweenService:Create(dot, TweenInfo.new(0.2), {Size = UDim2.new(0, 12, 0, 12), Position = UDim2.new(0, 14, 0.5, -6)}):Play()
         end)
-
-        if mod.OnToggle then mod.OnToggle(mod.Enabled) end
+        setEnabled(not mod.Enabled)
     end)
 
     frame.MouseEnter:Connect(function()
@@ -155,10 +160,14 @@ function Module.Create(Hub, W, tab, name)
         TweenService:Create(expand, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
     end)
     bind.MouseEnter:Connect(function()
-        TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+        if not mod.Listening then
+            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+        end
     end)
     bind.MouseLeave:Connect(function()
-        TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
+        if not mod.Listening then
+            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
+        end
     end)
 
     expand.MouseButton1Click:Connect(function()
@@ -207,14 +216,34 @@ function Module.Create(Hub, W, tab, name)
     end)
 
     local listening = false
-    local ignoreNextMouse = false
+    local listenStartTime = 0
+    local listenTimeout = nil
 
-    local function setBind(keyName, keyCode)
+    local function startListening()
+        listening = true
+        listenStartTime = tick()
+        bind.Text = "..."
+        W.Pulse(bind)
+        TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+
+        if listenTimeout then task.cancel(listenTimeout) end
+        listenTimeout = task.delay(5, function()
+            if listening then
+                listening = false
+                bind.Text = "+"
+                TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Panel}):Play()
+            end
+        end)
+    end
+
+    local function stopListening(keyName, keyCode)
+        listening = false
+        if listenTimeout then task.cancel(listenTimeout) end
         mod.Bind = keyCode
         bind.Text = keyName
         W.Pulse(bind)
         TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
-        task.delay(0.4, function()
+        task.delay(0.5, function()
             TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
         end)
         if mod.OnBind then mod.OnBind(keyCode) end
@@ -223,38 +252,25 @@ function Module.Create(Hub, W, tab, name)
     bind.MouseButton1Click:Connect(function()
         if listening then
             listening = false
+            if listenTimeout then task.cancel(listenTimeout) end
             bind.Text = "+"
             TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Panel}):Play()
             return
         end
-        listening = true
-        ignoreNextMouse = true
-        W.Pulse(bind)
-        bind.Text = "..."
-        TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+        startListening()
     end)
 
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not listening then return end
+        if tick() - listenStartTime < 0.15 then return end
 
         if input.UserInputType == Enum.UserInputType.Keyboard then
-            listening = false
-            ignoreNextMouse = false
-            setBind(input.KeyCode.Name, input.KeyCode)
+            if input.KeyCode == Enum.KeyCode.Unknown then return end
+            stopListening(input.KeyCode.Name, input.KeyCode)
         elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if ignoreNextMouse then
-                ignoreNextMouse = false
-                return
-            end
-            listening = false
-            setBind("LMB", "LMB")
+            stopListening("LMB", "LMB")
         elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-            if ignoreNextMouse then
-                ignoreNextMouse = false
-                return
-            end
-            listening = false
-            setBind("RMB", "RMB")
+            stopListening("RMB", "RMB")
         end
     end)
 
