@@ -1,18 +1,18 @@
 return function(Hub)
-    local Aimbot = {}
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local LocalPlayer = Players.LocalPlayer
 
+    local Aimbot = {}
     Aimbot.Enabled = false
     Aimbot.FOV = 300
     Aimbot.Speed = 0.3
     Aimbot.TargetPart = "Head"
     Aimbot.WallCheck = false
     Aimbot.FriendCheck = true
-    Aimbot.Keybind = Enum.KeyCode.E
-
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
-    local LocalPlayer = Players.LocalPlayer
+    Aimbot.DrawFOV = false
+    Aimbot.Bind = Enum.KeyCode.E
 
     local FOVCircle = Drawing.new("Circle")
     FOVCircle.Thickness = 2
@@ -140,10 +140,6 @@ return function(Hub)
         if not cam then return end
 
         if Aimbot.Enabled then
-            FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
-            FOVCircle.Radius = Aimbot.FOV
-            FOVCircle.Visible = true
-
             local target = GetClosestTarget()
             if target then
                 local sp, onScreen = cam:WorldToViewportPoint(target.Position)
@@ -154,13 +150,20 @@ return function(Hub)
                     if mousemoverel then mousemoverel(mx, my) end
                 end
             end
+        end
+
+        if Aimbot.DrawFOV then
+            FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+            FOVCircle.Radius = Aimbot.FOV
+            FOVCircle.Visible = true
         else
             FOVCircle.Visible = false
         end
     end)
 
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == Aimbot.Keybind then
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if gpe then return end
+        if input.KeyCode == Aimbot.Bind then
             Aimbot.Enabled = not Aimbot.Enabled
         end
     end)
