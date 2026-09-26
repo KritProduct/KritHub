@@ -1,77 +1,53 @@
 return function(Hub)
     local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
     local LocalPlayer = Players.LocalPlayer
     local AntiFlash = {}
 
     AntiFlash.Enabled = false
-    AntiFlash.HideOverlay = true
-    AntiFlash.HideScreenshot = true
 
-    local pgConn = nil
-    local childConns = {}
+    local connections = {}
 
-    local function hideElement(d)
-        if d:IsA("Frame") then
-            d.BackgroundTransparency = 1
-        elseif d:IsA("ImageLabel") then
-            d.ImageTransparency = 1
-            d.BackgroundTransparency = 1
-        elseif d:IsA("TextLabel") then
-            d.TextTransparency = 1
-            d.BackgroundTransparency = 1
-        else
-            return
-        end
-
-        d.Visible = false
-
-        d.Changed:Connect(function(prop)
-            if not AntiFlash.Enabled then return end
-            if prop == "Visible" then
-                d.Visible = false
-            elseif prop == "BackgroundTransparency" then
-                d.BackgroundTransparency = 1
-            elseif prop == "ImageTransparency" and d:IsA("ImageLabel") then
-                d.ImageTransparency = 1
-            elseif prop == "TextTransparency" and d:IsA("TextLabel") then
-                d.TextTransparency = 1
+    local function killGui(g)
+        if not g:IsA("ScreenGui") then return end
+        local n = string.lower(g.Name)
+        if string.find(n, "flash", 1, true) then
+            for _, d in ipairs(g:GetDescendants()) do
+                pcall(function()
+                    if d:IsA("Frame") or d:IsA("ImageLabel") or d:IsA("TextLabel") then
+                        d.Visible = false
+                        d.BackgroundTransparency = 1
+                        if d:IsA("ImageLabel") then d.ImageTransparency = 1 end
+                        if d:IsA("TextLabel") then d.TextTransparency = 1 end
+                    end
+                end)
             end
-        end)
+            g.Enabled = false
+            g:Destroy()
+        end
     end
 
-    local function handleOverlay(gui)
-        local function process(d)
-            if not AntiFlash.Enabled then return end
-            if not AntiFlash.HideOverlay then return end
-            if d.Name == "FlashOverlay" then
-                hideElement(d)
+    local function suppressLighting()
+        local Lighting = game:GetService("Lighting")
+
+        if Lighting.Brightness > 1 then Lighting.Brightness = 0 end
+
+        for _, e in ipairs(Lighting:GetChildren()) do
+            if e:IsA("BloomEffect") and e.Enabled then e.Enabled = false end
+            if e:IsA("ColorCorrectionEffect") then
+                if e.Brightness > 0 then e.Brightness = 0 end
+                if e.TintColor ~= Color3.fromRGB(255, 255, 255) then
+                    e.TintColor = Color3.fromRGB(255, 255, 255)
+                end
             end
         end
-        for _, d in ipairs(gui:GetDescendants()) do process(d) end
-        table.insert(childConns, gui.DescendantAdded:Connect(process))
     end
 
-    local function handleScreenshot(gui)
-        local function process(d)
-            if not AntiFlash.Enabled then return end
-            if not AntiFlash.HideScreenshot then return end
-            if d.Name == "ScreenshotImage" then
-                hideElement(d)
-            end
+    local function scanAll(pg)
+        for _, g in ipairs(pg:GetChildren()) do
+            killGui(g)
         end
-        for _, d in ipairs(gui:GetDescendants()) do process(d) end
-        table.insert(childConns, gui.DescendantAdded:Connect(process))
-    end
-
-    local function handleGui(gui)
-        if not AntiFlash.Enabled then return end
-        if not gui:IsA("ScreenGui") then return end
-
-        if gui.Name == "FlashbangEffect" then
-            handleOverlay(gui)
-        elseif gui.Name == "FlashScreenshot" then
-            handleScreenshot(gui)
-        end
+        suppressLighting()
     end
 
     function AntiFlash.Enable()
@@ -79,23 +55,41 @@ return function(Hub)
 
         local pg = LocalPlayer:WaitForChild("PlayerGui")
 
-        for _, g in ipairs(pg:GetChildren()) do
-            handleGui(g)
-        end
+        scanAll(pg)
 
-        if pgConn then pgConn:Disconnect() end
-        pgConn = pg.ChildAdded:Connect(function(child)
-            task.defer(function()
-                handleGui(child)
-            end)
-        end)
+        table.insert(connections, pg.ChildAdded:Connect(function(c)
+            killGui(c)
+        end))
+
+        table.insert(connections, pg.DescendantAdded:Connect(function(d)
+            if not AntiFlash.Enabled then return end
+            if d.Name == "FlashOverlay" or d.Name == "ScreenshotImage" then
+                pcall(function()
+                    d.Visible = false
+                    d.BackgroundTransparency = 1
+                    if d:IsA("ImageLabel") then d.ImageTransparency = 1 end
+                end)
+            end
+            local parent = d.Parent
+            while parent do
+                if parent:IsA("ScreenGui") and string.find(string.lower(parent.Name), "flash", 1, true) then
+                    killGui(parent)
+                    break
+                end
+                parent = parent.Parent
+            end
+        end))
+
+        table.insert(connections, RunService.RenderStepped:Connect(function()
+            if not AntiFlash.Enabled then return end
+            scanAll(pg)
+        end))
     end
 
     function AntiFlash.Disable()
         AntiFlash.Enabled = false
-        if pgConn then pgConn:Disconnect() pgConn = nil end
-        for _, c in ipairs(childConns) do c:Disconnect() end
-        childConns = {}
+        for _, c in ipairs(connections) do c:Disconnect() end
+        connections = {}
     end
 
     return AntiFlash
