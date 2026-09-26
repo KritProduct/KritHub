@@ -37,8 +37,8 @@ local timechanger = load("features/timechanger.lua")
 if timechanger then Hub.Features.TimeChanger = timechanger(Hub) end
 local fog = load("features/fog.lua")
 if fog then Hub.Features.Fog = fog(Hub) end
-local atmosphere = load("features/atmosphere.lua")
-if atmosphere then Hub.Features.Atmosphere = atmosphere(Hub) end
+local cc = load("features/colorcorrection.lua")
+if cc then Hub.Features.ColorCorrection = cc(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
