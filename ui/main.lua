@@ -108,6 +108,19 @@ function UI.Build(Hub)
         if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.SkeletonThroughWalls = v end
     end)
 
+    local xray = Module.Create(Hub, W, visualsTab, "Xray")
+    xray.OnToggle = function(v)
+        if Hub.Features.Xray then
+            if v then Hub.Features.Xray.Enable() else Hub.Features.Xray.Disable() end
+        end
+    end
+    Slider(Hub, W, xray, "Transparency", 10, 100, 50, function(v)
+        if Hub.Features.Xray then Hub.Features.Xray.SetTransparency(v / 100) end
+    end)
+    Button(Hub, W, xray, "Refresh Walls", function()
+        if Hub.Features.Xray then Hub.Features.Xray.Refresh() end
+    end)
+
     local afMod = Module.Create(Hub, W, visualsTab, "Anti Flash")
     afMod.OnToggle = function(v)
         if Hub.Features.AntiFlash then
@@ -169,18 +182,18 @@ function UI.Build(Hub)
         if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
-    local xray = Module.Create(Hub, W, visualsTab, "Xray")
-    xray.OnToggle = function(v)
-        if Hub.Features.Xray then
-            if v then Hub.Features.Xray.Enable() else Hub.Features.Xray.Disable() end
+    local hudTab = TabsM.Create("HUD")
+
+    local wmMod = Module.Create(Hub, W, hudTab, "Watermark")
+    wmMod.OnToggle = function(v)
+        if Hub.Features.Watermark then
+            if v then Hub.Features.Watermark.Enable() else Hub.Features.Watermark.Disable() end
         end
     end
-    Slider(Hub, W, xray, "Transparency", 10, 100, 50, function(v)
-        if Hub.Features.Xray then Hub.Features.Xray.SetTransparency(v / 100) end
-    end)
-    Button(Hub, W, xray, "Refresh Walls", function()
-        if Hub.Features.Xray then Hub.Features.Xray.Refresh() end
-    end)
+    Toggle(Hub, W, wmMod, "Show FPS", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowFPS = v end end)
+    Toggle(Hub, W, wmMod, "Show Ping", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowPing = v end end)
+    Toggle(Hub, W, wmMod, "Show Username", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowUsername = v end end)
+    Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
 
     local miscTab = TabsM.Create("Misc")
 
@@ -208,34 +221,6 @@ function UI.Build(Hub)
         if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
     end)
 
-    local hudTab = TabsM.Create("HUD")
-
-    local wmMod = Module.Create(Hub, W, hudTab, "Watermark")
-    wmMod.OnToggle = function(v)
-        if Hub.Features.Watermark then
-            if v then Hub.Features.Watermark.Enable() else Hub.Features.Watermark.Disable() end
-        end
-    end
-    Toggle(Hub, W, wmMod, "Show FPS", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowFPS = v end end)
-    Toggle(Hub, W, wmMod, "Show Ping", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowPing = v end end)
-    Toggle(Hub, W, wmMod, "Show Username", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowUsername = v end end)
-    Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
-
-    Toggle(Hub, W, afkMod, "Click", true, function(v)
-        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
-    end)
-
-    local cfgMod = Module.Create(Hub, W, miscTab, "Config")
-    Button(Hub, W, cfgMod, "Save Config", function()
-        if Hub.Features.Config then Hub.Features.Config.Save() end
-    end)
-    Button(Hub, W, cfgMod, "Load Config", function()
-        if Hub.Features.Config then Hub.Features.Config.Load() end
-    end)
-    Button(Hub, W, cfgMod, "Delete Config", function()
-        if Hub.Features.Config then Hub.Features.Config.Delete() end
-    end)
-
     local spacer = Instance.new("Frame")
     spacer.Name = "ScrollSpacer"
     spacer.Size = UDim2.new(1, -6, 0, 60)
@@ -247,6 +232,9 @@ function UI.Build(Hub)
 
     combatTab.Select(false)
     for _, m in pairs(visualsTab.Modules) do
+        m.Frame.Visible = false
+    end
+    for _, m in pairs(hudTab.Modules) do
         m.Frame.Visible = false
     end
     for _, m in pairs(miscTab.Modules) do
@@ -262,8 +250,8 @@ function UI.Build(Hub)
         Hub.UI.ConfigsRef = cw
 
         local cfgBtn = Instance.new("TextButton")
-        cfgBtn.Size = UDim2.new(0, 60, 0, 26)
-        cfgBtn.Position = UDim2.new(1, -130, 0, 11)
+        cfgBtn.Size = UDim2.new(0, 50, 0, 26)
+        cfgBtn.Position = UDim2.new(1, -120, 0, 11)
         cfgBtn.BackgroundColor3 = T.Accent
         cfgBtn.BorderSizePixel = 0
         cfgBtn.Text = "CFG"
