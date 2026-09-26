@@ -63,7 +63,7 @@ function UI.Build(Hub)
             if v then Hub.Features.AntiFlash.Enable() else Hub.Features.AntiFlash.Disable() end
         end
     end
-    Toggle(Hub, W, afMod, "Hide Overlay", true, function(v)
+    Toggle(Hub, W, afMod, "Hide Flashbang", true, function(v)
         if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideOverlay = v end
     end)
     Toggle(Hub, W, afMod, "Hide Screenshot", true, function(v)
