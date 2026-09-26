@@ -4,7 +4,6 @@ function UI.Build(Hub)
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
-    local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
     local T = Hub.Theme
     local U = Hub.Utils
@@ -54,7 +53,7 @@ function UI.Build(Hub)
     accentLine.Parent = header
 
     local brand = Instance.new("TextLabel")
-    brand.Size = UDim2.new(0, 200, 1, 0)
+    brand.Size = UDim2.new(0, 220, 1, 0)
     brand.Position = UDim2.new(0, 22, 0, 0)
     brand.BackgroundTransparency = 1
     brand.Text = "KRITHUB"
@@ -66,7 +65,7 @@ function UI.Build(Hub)
     brand.Parent = header
 
     local version = Instance.new("TextLabel")
-    version.Size = UDim2.new(0, 60, 1, 0)
+    version.Size = UDim2.new(0, 80, 1, 0)
     version.Position = UDim2.new(0, 118, 0, 3)
     version.BackgroundTransparency = 1
     version.Text = "v1.0"
@@ -79,10 +78,14 @@ function UI.Build(Hub)
 
     local function pulse(btn)
         local orig = btn.Size
-        local small = UDim2.new(0, orig.X.Offset - 2, 0, orig.Y.Offset - 2)
-        TweenService:Create(btn, TweenInfo.new(0.08), {Size = small}):Play()
-        task.delay(0.08, function()
-            TweenService:Create(btn, TweenInfo.new(0.12), {Size = orig}):Play()
+        local small = UDim2.new(0, orig.X.Offset - 3, 0, orig.Y.Offset - 3)
+        local big = UDim2.new(0, orig.X.Offset + 1, 0, orig.Y.Offset + 1)
+        TweenService:Create(btn, TweenInfo.new(0.07), {Size = small}):Play()
+        task.delay(0.07, function()
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = big}):Play()
+            task.delay(0.1, function()
+                TweenService:Create(btn, TweenInfo.new(0.1), {Size = orig}):Play()
+            end)
         end)
     end
 
@@ -179,15 +182,15 @@ function UI.Build(Hub)
         main.Size = UDim2.new(0, 560, 0, 400)
         main.Position = UDim2.new(0.5, -280, 0.5, -200)
 
-        TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 620, 0, 440),
             Position = UDim2.new(0.5, -310, 0.5, -220),
             BackgroundTransparency = 0,
         }):Play()
-        TweenService:Create(header, TweenInfo.new(0.35), {BackgroundTransparency = 0.15}):Play()
-        TweenService:Create(sidebar, TweenInfo.new(0.35), {BackgroundTransparency = 0.15}):Play()
-        TweenService:Create(content, TweenInfo.new(0.35), {BackgroundTransparency = 0.15}):Play()
-        TweenService:Create(mainStroke, TweenInfo.new(0.35), {Transparency = 0}):Play()
+        TweenService:Create(header, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
+        TweenService:Create(sidebar, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
+        TweenService:Create(content, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
+        TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
     end
 
     local function makeTab(name)
@@ -211,33 +214,65 @@ function UI.Build(Hub)
         local tab = { Name = name, Btn = btn, Stroke = btnStroke, Modules = {} }
         Hub.State.RegisterTab(name, tab)
 
-        local function selectThis()
+        local function selectThis(animated)
             for n, t in pairs(Hub.State.Tabs) do
                 if t == tab then
-                    TweenService:Create(t.Btn, TweenInfo.new(0.2), {BackgroundColor3 = T.Accent, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-                    t.Stroke.Thickness = 2
-                    TweenService:Create(t.Stroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+                    if animated then
+                        TweenService:Create(t.Btn, TweenInfo.new(0.25), {BackgroundColor3 = T.Accent, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+                        t.Stroke.Thickness = 2
+                        TweenService:Create(t.Stroke, TweenInfo.new(0.35), {Transparency = 0}):Play()
+                    else
+                        t.Btn.BackgroundColor3 = T.Accent
+                        t.Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        t.Stroke.Thickness = 2
+                        t.Stroke.Transparency = 0
+                    end
                 else
-                    TweenService:Create(t.Btn, TweenInfo.new(0.2), {BackgroundColor3 = T.Item, TextColor3 = T.TextDim}):Play()
-                    TweenService:Create(t.Stroke, TweenInfo.new(0.2), {Transparency = 1}):Play()
+                    if animated then
+                        TweenService:Create(t.Btn, TweenInfo.new(0.25), {BackgroundColor3 = T.Item, TextColor3 = T.TextDim}):Play()
+                        TweenService:Create(t.Stroke, TweenInfo.new(0.25), {Transparency = 1}):Play()
+                    else
+                        t.Btn.BackgroundColor3 = T.Item
+                        t.Btn.TextColor3 = T.TextDim
+                        t.Stroke.Transparency = 1
+                    end
                 end
             end
+
             Hub.State.CurrentTab = name
-            for _, m in pairs(tab.Modules) do
-                m.Frame.Visible = true
-                m.Frame.BackgroundTransparency = 1
-                TweenService:Create(m.Frame, TweenInfo.new(0.25), {BackgroundTransparency = 0}):Play()
-            end
-            for n, t in pairs(Hub.State.Tabs) do
-                if t ~= tab then
-                    for _, m in pairs(t.Modules) do
+
+            local prev = Hub.State.PrevTab
+            if prev and prev ~= tab then
+                for _, m in pairs(prev.Modules) do
+                    if animated then
+                        local fade = TweenService:Create(m.Frame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
+                        fade:Play()
+                        TweenService:Create(m.Frame, TweenInfo.new(0.2), {Position = UDim2.new(m.Frame.Position.X.Scale, m.Frame.Position.X.Offset - 20, m.Frame.Position.Y.Scale, m.Frame.Position.Y.Offset)}):Play()
+                        fade.Completed:Connect(function()
+                            m.Frame.Visible = false
+                            m.Frame.Position = UDim2.new(0, 0, 0, m.Frame.Position.Y.Offset)
+                        end)
+                    else
                         m.Frame.Visible = false
                     end
                 end
             end
+
+            for _, m in pairs(tab.Modules) do
+                m.Frame.Visible = true
+                if animated then
+                    m.Frame.BackgroundTransparency = 1
+                    m.Frame.Position = UDim2.new(0, 20, 0, m.Frame.Position.Y.Offset)
+                    TweenService:Create(m.Frame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, m.Frame.Position.Y.Offset)}):Play()
+                else
+                    m.Frame.BackgroundTransparency = 0
+                end
+            end
+
+            Hub.State.PrevTab = tab
         end
 
-        btn.MouseButton1Click:Connect(selectThis)
+        btn.MouseButton1Click:Connect(function() selectThis(true) end)
         btn.MouseEnter:Connect(function()
             if Hub.State.CurrentTab ~= name then
                 TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = T.ItemHover}):Play()
@@ -283,12 +318,11 @@ function UI.Build(Hub)
         dotGlow.Size = UDim2.new(0, 22, 0, 22)
         dotGlow.Position = UDim2.new(0, 9, 0.5, -11)
         dotGlow.BackgroundColor3 = T.Red
-        dotGlow.BackgroundTransparency = 0.7
+        dotGlow.BackgroundTransparency = 1
         dotGlow.BorderSizePixel = 0
         dotGlow.ZIndex = 4
         dotGlow.Parent = head
         U.Corner(dotGlow, UDim.new(1, 0))
-        dotGlow.Visible = false
 
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, -140, 1, 0)
@@ -336,7 +370,6 @@ function UI.Build(Hub)
         settings.BackgroundTransparency = 1
         settings.ZIndex = 4
         settings.Parent = frame
-        settings.AutomaticSize = Enum.AutomaticSize.Y
 
         local settingsList = Instance.new("UIListLayout")
         settingsList.Padding = UDim.new(0, 4)
@@ -351,6 +384,7 @@ function UI.Build(Hub)
             Dot = dot,
             DotGlow = dotGlow,
             Settings = settings,
+            SettingsList = settingsList,
             Elements = {},
             Enabled = false,
             Open = false,
@@ -371,14 +405,14 @@ function UI.Build(Hub)
             TweenService:Create(dot, TweenInfo.new(0.2), {BackgroundColor3 = c}):Play()
             TweenService:Create(dotGlow, TweenInfo.new(0.2), {BackgroundColor3 = c}):Play()
 
-            dotGlow.Visible = true
             dotGlow.BackgroundTransparency = 0.3
-            TweenService:Create(dotGlow, TweenInfo.new(0.5), {BackgroundTransparency = 0.85}):Play()
+            TweenService:Create(dotGlow, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
 
-            local s = mod.Enabled and UDim2.new(0, 16, 0, 16) or UDim2.new(0, 12, 0, 12)
-            local p = mod.Enabled and UDim2.new(0, 12, 0.5, -8) or UDim2.new(0, 14, 0.5, -6)
-            dot.Size = s
-            dot.Position = p
+            dot.Size = UDim2.new(0, 12, 0, 12)
+            TweenService:Create(dot, TweenInfo.new(0.15), {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, 12, 0.5, -8)}):Play()
+            task.delay(0.15, function()
+                TweenService:Create(dot, TweenInfo.new(0.2), {Size = UDim2.new(0, 12, 0, 12), Position = UDim2.new(0, 14, 0.5, -6)}):Play()
+            end)
 
             if mod.OnToggle then mod.OnToggle(mod.Enabled) end
         end)
@@ -405,26 +439,43 @@ function UI.Build(Hub)
 
         expand.MouseButton1Click:Connect(function()
             mod.Open = not mod.Open
+
+            local targetHeight = 40
+            if mod.Open then
+                targetHeight = 40 + 8 + #mod.Elements * 32 + 4
+            end
+
+            local info = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            TweenService:Create(frame, info, {Size = UDim2.new(1, -6, 0, targetHeight)}):Play()
+
             if mod.Open then
                 settings.Visible = true
-                settings.Size = UDim2.new(1, -16, 0, 0)
-                for _, el in ipairs(mod.Elements) do
+                for i, el in ipairs(mod.Elements) do
                     el.Frame.Visible = true
                     el.Frame.BackgroundTransparency = 1
-                    TweenService:Create(el.Frame, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+                    local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 4)
+                    el.Frame.Position = UDim2.new(0, 0, 0, targetY + 10)
+                    TweenService:Create(el.Frame, TweenInfo.new(0.25 + i * 0.03, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                        BackgroundTransparency = 0,
+                        Position = UDim2.new(0, 0, 0, targetY),
+                    }):Play()
                 end
-                TweenService:Create(expand, TweenInfo.new(0.2), {Rotation = 180}):Play()
+                TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 180}):Play()
             else
-                for _, el in ipairs(mod.Elements) do
-                    TweenService:Create(el.Frame, TweenInfo.new(0.15), {BackgroundTransparency = 1}):Play()
+                for i, el in ipairs(mod.Elements) do
+                    local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 4) + 10
+                    TweenService:Create(el.Frame, TweenInfo.new(0.15), {
+                        BackgroundTransparency = 1,
+                        Position = UDim2.new(0, 0, 0, targetY),
+                    }):Play()
                 end
-                task.delay(0.15, function()
+                task.delay(0.18, function()
                     settings.Visible = false
                     for _, el in ipairs(mod.Elements) do
                         el.Frame.Visible = false
                     end
                 end)
-                TweenService:Create(expand, TweenInfo.new(0.2), {Rotation = 0}):Play()
+                TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 0}):Play()
             end
             expand.Text = mod.Open and "^" or "v"
         end)
@@ -432,13 +483,20 @@ function UI.Build(Hub)
         local listeningBind = false
         bind.MouseButton1Click:Connect(function()
             listeningBind = true
+            pulse(bind)
             bind.Text = "..."
+            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
         end)
 
         UserInputService.InputBegan:Connect(function(input, gpe)
             if listeningBind and input.UserInputType == Enum.UserInputType.Keyboard then
                 bind.Text = input.KeyCode.Name
                 listeningBind = false
+                pulse(bind)
+                TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
+                task.delay(0.4, function()
+                    TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
+                end)
                 if mod.OnBind then mod.OnBind(input.KeyCode) end
             end
         end)
@@ -493,21 +551,16 @@ function UI.Build(Hub)
         U.Corner(knob, UDim.new(1, 0))
 
         local state = default
-        local function refresh(instant)
+        local function refresh()
             local target = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
             local color = state and T.Green or Color3.fromRGB(60, 60, 75)
-            if instant then
-                knob.Position = target
-                tog.BackgroundColor3 = color
-            else
-                TweenService:Create(knob, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {Position = target}):Play()
-                TweenService:Create(tog, TweenInfo.new(0.18), {BackgroundColor3 = color}):Play()
-            end
+            TweenService:Create(knob, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = target}):Play()
+            TweenService:Create(tog, TweenInfo.new(0.22), {BackgroundColor3 = color}):Play()
         end
 
         tog.MouseButton1Click:Connect(function()
             state = not state
-            refresh(false)
+            refresh()
             if callback then callback(state) end
         end)
 
@@ -575,8 +628,8 @@ function UI.Build(Hub)
         U.Corner(barFill, UDim.new(1, 0))
 
         local glow = Instance.new("Frame")
-        glow.Size = UDim2.new(0, 14, 0, 14)
-        glow.Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7)
+        glow.Size = UDim2.new(0, 16, 0, 16)
+        glow.Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8)
         glow.BackgroundColor3 = T.Accent
         glow.BackgroundTransparency = 0.6
         glow.BorderSizePixel = 0
@@ -587,19 +640,19 @@ function UI.Build(Hub)
         local dragging = false
         local state = default
 
-        local function setFromX(mouseX, instant)
+        local function setFromX(mouseX, animated)
             local absPos = barBg.AbsolutePosition.X
             local absSize = barBg.AbsoluteSize.X
             local frac = math.clamp((mouseX - absPos) / absSize, 0, 1)
             state = min + frac * (max - min)
-            local sizeTween = UDim2.new(frac, 0, 1, 0)
-            local glowTween = UDim2.new(frac, -7, 0.5, -7)
-            if instant then
-                barFill.Size = sizeTween
-                glow.Position = glowTween
+            local sizeTarget = UDim2.new(frac, 0, 1, 0)
+            local glowTarget = UDim2.new(frac, -8, 0.5, -8)
+            if animated then
+                TweenService:Create(barFill, TweenInfo.new(0.1), {Size = sizeTarget}):Play()
+                TweenService:Create(glow, TweenInfo.new(0.1), {Position = glowTarget}):Play()
             else
-                TweenService:Create(barFill, TweenInfo.new(0.08), {Size = sizeTween}):Play()
-                TweenService:Create(glow, TweenInfo.new(0.08), {Position = glowTween}):Play()
+                barFill.Size = sizeTarget
+                glow.Position = glowTarget
             end
             valTxt.Text = tostring(math.floor(state))
             if callback then callback(state) end
@@ -618,7 +671,7 @@ function UI.Build(Hub)
             dragging = true
             glow.BackgroundTransparency = 0.3
             local m = UserInputService:GetMouseLocation()
-            setFromX(m.X, false)
+            setFromX(m.X, true)
         end)
 
         row.MouseEnter:Connect(function()
@@ -638,7 +691,7 @@ function UI.Build(Hub)
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
-                TweenService:Create(glow, TweenInfo.new(0.2), {BackgroundTransparency = 0.6}):Play()
+                TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.6}):Play()
             end
         end)
 
@@ -664,36 +717,37 @@ function UI.Build(Hub)
     makeToggle(aim, "Wall Check", false, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.WallCheck = v end
     end)
-    makeToggle(aim, "Friend Check", true, function(v)
+    makeToggle(aim, "Ignore Teammates", true, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.FriendCheck = v end
     end)
-    makeSlider(aim, "FOV", 20, 800, 300, function(v)
+    makeSlider(aim, "Field of View", 20, 800, 300, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.FOV = v end
     end)
-    makeSlider(aim, "Smoothness", 5, 100, 30, function(v)
+    makeSlider(aim, "Aim Smoothness", 5, 100, 30, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.Speed = v / 100 end
     end)
 
     local visualsTab = makeTab("Visuals")
-    local esp = makeModule(visualsTab, "ESP")
+    local esp = makeModule(visualsTab, "Player ESP")
     esp.OnToggle = function(v)
         if Hub.Features.ESP then
             if v then Hub.Features.ESP.Enable() else Hub.Features.ESP.Disable() end
         end
     end
-    makeToggle(esp, "Box", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Box = v end end)
-    makeToggle(esp, "Name", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Name = v end end)
-    makeToggle(esp, "Health", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Health = v end end)
-    makeToggle(esp, "Distance", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Distance = v end end)
-    makeToggle(esp, "Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
-    makeSlider(esp, "Max Distance", 250, 5000, 2000, function(v)
+    makeToggle(esp, "Show Box", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Box = v end end)
+    makeToggle(esp, "Show Name", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Name = v end end)
+    makeToggle(esp, "Show Health", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Health = v end end)
+    makeToggle(esp, "Show Distance", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Distance = v end end)
+    makeToggle(esp, "Tracer Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
+    makeSlider(esp, "Render Distance", 250, 5000, 2000, function(v)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
     end)
 
-    combatTab.Select()
+    combatTab.Select(false)
     for _, m in pairs(visualsTab.Modules) do
         m.Frame.Visible = false
     end
+    Hub.State.PrevTab = combatTab
 
     closeBtn.MouseButton1Click:Connect(function()
         pulse(closeBtn)
@@ -704,11 +758,11 @@ function UI.Build(Hub)
     minBtn.MouseButton1Click:Connect(function()
         pulse(minBtn)
         if main.Size.Y.Offset > 46 then
-            TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 620, 0, 46)
             }):Play()
         else
-            TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 620, 0, 440)
             }):Play()
         end
