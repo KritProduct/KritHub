@@ -4,11 +4,9 @@ return function(Hub)
     local Fog = {}
 
     local atm = Lighting:FindFirstChildOfClass("Atmosphere")
-    local created = false
     if not atm then
         atm = Instance.new("Atmosphere")
         atm.Parent = Lighting
-        created = true
     end
 
     local original = {
@@ -31,10 +29,22 @@ return function(Hub)
     local heartbeatConn = nil
     local propConns = {}
 
+    local function ensureAtm()
+        if not atm or not atm.Parent then
+            atm = Instance.new("Atmosphere")
+            atm.Parent = Lighting
+            atm.Density = Fog.Density
+            atm.Offset = Fog.Offset
+            atm.Color = Fog.Color
+            atm.Decay = Fog.Decay
+            atm.Glare = Fog.Glare
+            atm.Haze = Fog.Haze
+        end
+    end
+
     local function enforce()
         if not Fog.Enabled then return end
-        if atm.Parent == nil then return end
-
+        ensureAtm()
         if math.abs(atm.Density - Fog.Density) > 0.01 then atm.Density = Fog.Density end
         if math.abs(atm.Offset - Fog.Offset) > 0.01 then atm.Offset = Fog.Offset end
         if atm.Color ~= Fog.Color then atm.Color = Fog.Color end
@@ -44,11 +54,12 @@ return function(Hub)
     end
 
     local function hookProps()
+        for _, c in ipairs(propConns) do c:Disconnect() end
+        propConns = {}
+        ensureAtm()
         for _, prop in ipairs({"Density", "Offset", "Color", "Decay", "Glare", "Haze"}) do
             table.insert(propConns, atm:GetPropertyChangedSignal(prop):Connect(function()
-                if Fog.Enabled then
-                    task.defer(enforce)
-                end
+                if Fog.Enabled then task.defer(enforce) end
             end))
         end
     end
@@ -59,26 +70,15 @@ return function(Hub)
     end
 
     function Fog.Enable()
-        if atm.Parent == nil then
-            atm = Lighting:FindFirstChildOfClass("Atmosphere")
-            if not atm then
-                atm = Instance.new("Atmosphere")
-                atm.Parent = Lighting
-                created = true
-            end
-            hookProps()
-        end
-
         Fog.Enabled = true
+        ensureAtm()
         atm.Density = Fog.Density
         atm.Offset = Fog.Offset
         atm.Color = Fog.Color
         atm.Decay = Fog.Decay
         atm.Glare = Fog.Glare
         atm.Haze = Fog.Haze
-
         hookProps()
-
         if not heartbeatConn then
             heartbeatConn = RunService.Heartbeat:Connect(enforce)
         end
@@ -88,7 +88,6 @@ return function(Hub)
         Fog.Enabled = false
         unhookProps()
         if heartbeatConn then heartbeatConn:Disconnect() heartbeatConn = nil end
-
         if atm and atm.Parent then
             atm.Density = original.Density
             atm.Offset = original.Offset
@@ -97,42 +96,14 @@ return function(Hub)
             atm.Glare = original.Glare
             atm.Haze = original.Haze
         end
-
-        if created and atm then
-            atm:Destroy()
-            atm = nil
-        end
     end
 
-    function Fog.SetDensity(v)
-        Fog.Density = v
-        if Fog.Enabled and atm then atm.Density = v end
-    end
-
-    function Fog.SetOffset(v)
-        Fog.Offset = v
-        if Fog.Enabled and atm then atm.Offset = v end
-    end
-
-    function Fog.SetColor(c)
-        Fog.Color = c
-        if Fog.Enabled and atm then atm.Color = c end
-    end
-
-    function Fog.SetDecay(c)
-        Fog.Decay = c
-        if Fog.Enabled and atm then atm.Decay = c end
-    end
-
-    function Fog.SetGlare(v)
-        Fog.Glare = v
-        if Fog.Enabled and atm then atm.Glare = v end
-    end
-
-    function Fog.SetHaze(v)
-        Fog.Haze = v
-        if Fog.Enabled and atm then atm.Haze = v end
-    end
+    function Fog.SetDensity(v) Fog.Density = v if Fog.Enabled then ensureAtm() atm.Density = v end end
+    function Fog.SetOffset(v) Fog.Offset = v if Fog.Enabled then ensureAtm() atm.Offset = v end end
+    function Fog.SetColor(c) Fog.Color = c if Fog.Enabled then ensureAtm() atm.Color = c end end
+    function Fog.SetDecay(c) Fog.Decay = c if Fog.Enabled then ensureAtm() atm.Decay = c end end
+    function Fog.SetGlare(v) Fog.Glare = v if Fog.Enabled then ensureAtm() atm.Glare = v end end
+    function Fog.SetHaze(v) Fog.Haze = v if Fog.Enabled then ensureAtm() atm.Haze = v end end
 
     return Fog
 end
