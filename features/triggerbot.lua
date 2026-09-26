@@ -3,14 +3,15 @@ return function(Hub)
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
     local LocalPlayer = Players.LocalPlayer
+    local VirtualInputManager = game:GetService("VirtualInputManager")
 
     local TriggerBot = {}
     TriggerBot.Enabled = false
-    TriggerBot.Teammates = false
-    TriggerBot.WallCheck = false
-    TriggerBot.MouseButton = "RMB"
-    TriggerBot.TargetPart = "Head"
-    TriggerBot.Delay = 50
+    TriggerBot.NoFriendDamage = true
+    TriggerBot.WallCheck = true
+    TriggerBot.TargetMode = "Head"
+    TriggerBot.PixelThreshold = 30
+    TriggerBot.ShotDelay = 100
 
     local lastShot = 0
 
@@ -39,36 +40,32 @@ return function(Hub)
         return GetTeam(me)
     end
 
-    local function GetTargetPart(ch)
-        if TriggerBot.TargetPart == "Head" then
-            return ch:FindFirstChild("Head")
-        elseif TriggerBot.TargetPart == "Torso" then
-            return ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso") or ch:FindFirstChild("HumanoidRootPart")
-        elseif TriggerBot.TargetPart == "Legs" then
-            return ch:FindFirstChild("LeftUpperLeg") or ch:FindFirstChild("RightUpperLeg") or ch:FindFirstChild("LowerTorso")
-        end
-        return ch:FindFirstChild("Head")
-    end
-
-    local function IsVisible(ch, targetPart)
+    local function IsVisible(targetCh)
         if not TriggerBot.WallCheck then return true end
 
         local char = LocalPlayer.Character
         if not char then return false end
         local cam = workspace.CurrentCamera
         if not cam then return false end
-        local head = ch:FindFirstChild("Head")
+
+        local head = targetCh:FindFirstChild("Head")
+        local torso = targetCh:FindFirstChild("UpperTorso") or targetCh:FindFirstChild("Torso")
         if not head then return false end
 
         local ignore = {char}
+
         local folder = GetFolder()
         if folder then
             for _, other in ipairs(folder:GetChildren()) do
                 if other:IsA("Model") then
-                    for _, d in ipairs(other:GetDescendants()) do
-                        if d ~= head then
-                            table.insert(ignore, d)
+                    if other == targetCh then
+                        for _, d in ipairs(other:GetDescendants()) do
+                            if d ~= head and d ~= torso then
+                                table.insert(ignore, d)
+                            end
                         end
+                    else
+                        table.insert(ignore, other)
                     end
                 end
             end
@@ -80,17 +77,41 @@ return function(Hub)
         params.IgnoreWater = true
 
         local origin = cam.CFrame.Position
-        local dir = head.Position - origin
-        local ray = workspace:Raycast(origin, dir, params)
 
-        if ray == nil then return true end
-        if ray.Instance == head then return true end
+        if head then
+            local ray = workspace:Raycast(origin, head.Position - origin, params)
+            if ray == nil or ray.Instance == head then return true end
+        end
+
+        if torso then
+            local ray = workspace:Raycast(origin, torso.Position - origin, params)
+            if ray == nil or ray.Instance == torso then return true end
+        end
+
         return false
     end
 
-    local function IsCursorOnTarget()
+    local function GetPartsToCheck(ch)
+        local list = {}
+        if TriggerBot.TargetMode == "Head" then
+            local h = ch:FindFirstChild("Head")
+            if h then table.insert(list, h) end
+        elseif TriggerBot.TargetMode == "Torso" then
+            local t = ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso")
+            if t then table.insert(list, t) end
+        else
+            local h = ch:FindFirstChild("Head")
+            local t = ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso")
+            if h then table.insert(list, h) end
+            if t then table.insert(list, t) end
+        end
+        return list
+    end
+
+    local function FindTarget()
         local cam = workspace.CurrentCamera
         if not cam then return nil end
+
         local mouse = UserInputService:GetMouseLocation()
         local folder = GetFolder()
         if not folder then return nil end
@@ -100,18 +121,20 @@ return function(Hub)
         for _, ch in ipairs(folder:GetChildren()) do
             if ch:IsA("Model") and ch ~= LocalPlayer.Character and IsAlive(ch) then
                 local isFriend = false
-                if myTeam then
+                if TriggerBot.NoFriendDamage and myTeam then
                     local t = GetTeam(ch)
                     if t == myTeam then isFriend = true end
                 end
 
-                if (not isFriend) or TriggerBot.Teammates then
-                    local part = GetTargetPart(ch)
-                    if part then
+                if not isFriend then
+                    local parts = GetPartsToCheck(ch)
+                    for _, part in ipairs(parts) do
                         local sp, onScreen = cam:WorldToViewportPoint(part.Position)
                         if onScreen then
-                            if math.abs(sp.X - mouse.X) < 15 and math.abs(sp.Y - mouse.Y) < 15 then
-                                if IsVisible(ch, part) then
+                            local dx = math.abs(sp.X - mouse.X)
+                            local dy = math.abs(sp.Y - mouse.Y)
+                            if dx < TriggerBot.PixelThreshold and dy < TriggerBot.PixelThreshold then
+                                if IsVisible(ch) then
                                     return ch
                                 end
                             end
@@ -123,30 +146,26 @@ return function(Hub)
         return nil
     end
 
+    local function Fire()
+        if mousemoverel then mousemoverel(0, 0) end
+        if mouse1click then mouse1click() end
+        if VirtualInputManager then
+            pcall(function()
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                task.wait(0.01)
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+            end)
+        end
+    end
+
     RunService.RenderStepped:Connect(function()
         if not TriggerBot.Enabled then return end
+        if tick() - lastShot < (TriggerBot.ShotDelay / 1000) then return end
 
-        local isHeld = false
-        if TriggerBot.MouseButton == "LMB" then
-            isHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-        elseif TriggerBot.MouseButton == "RMB" then
-            isHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
-        end
-
-        if not isHeld then return end
-
-        if tick() - lastShot < (TriggerBot.Delay / 1000) then return end
-
-        local target = IsCursorOnTarget()
+        local target = FindTarget()
         if target then
             lastShot = tick()
-            if mousemoverel then
-                mousemoverel(0, 0)
-            end
-            if mouse1click then mouse1click()
-            elseif mouse1press and mouse1release then
-                mouse1press() mouse1release()
-            end
+            Fire()
         end
     end)
 
