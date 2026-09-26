@@ -67,42 +67,48 @@ function UI.Build(Hub)
         if Hub.Features.TimeChanger then Hub.Features.TimeChanger.Set(v) end
     end)
 
-    local fogMod = Module.Create(Hub, W, visualsTab, "Fog Control")
+    local fogMod = Module.Create(Hub, W, visualsTab, "Fog")
     fogMod.OnToggle = function(v)
         if Hub.Features.Fog then
             if v then Hub.Features.Fog.Enable() else Hub.Features.Fog.Disable() end
         end
     end
-    Slider(Hub, W, fogMod, "Fog Start", 0, 5000, 100, function(v)
-        if Hub.Features.Fog then Hub.Features.Fog.SetStart(v) end
+    Slider(Hub, W, fogMod, "Density", 0, 100, 50, function(v)
+        if Hub.Features.Fog then Hub.Features.Fog.SetDensity(v / 100) end
     end)
-    Slider(Hub, W, fogMod, "Fog End", 0, 10000, 1000, function(v)
-        if Hub.Features.Fog then Hub.Features.Fog.SetEnd(v) end
+    Slider(Hub, W, fogMod, "Haze", 0, 100, 30, function(v)
+        if Hub.Features.Fog then Hub.Features.Fog.SetHaze(v / 10) end
     end)
-    ColorPicker(Hub, W, fogMod, "Fog Color", Color3.fromRGB(200, 200, 200), function(c)
+    Slider(Hub, W, fogMod, "Glare", 0, 100, 0, function(v)
+        if Hub.Features.Fog then Hub.Features.Fog.SetGlare(v / 100) end
+    end)
+    Slider(Hub, W, fogMod, "Offset", 0, 100, 0, function(v)
+        if Hub.Features.Fog then Hub.Features.Fog.SetOffset(v / 100) end
+    end)
+    ColorPicker(Hub, W, fogMod, "Color", Color3.fromRGB(200, 200, 200), function(c)
         if Hub.Features.Fog then Hub.Features.Fog.SetColor(c) end
     end)
+    ColorPicker(Hub, W, fogMod, "Decay", Color3.fromRGB(106, 112, 125), function(c)
+        if Hub.Features.Fog then Hub.Features.Fog.SetDecay(c) end
+    end)
 
-    local atmMod = Module.Create(Hub, W, visualsTab, "Atmosphere")
-    atmMod.OnToggle = function(v)
-        if Hub.Features.Atmosphere then
-            if v then Hub.Features.Atmosphere.Enable() else Hub.Features.Atmosphere.Disable() end
+    local ccMod = Module.Create(Hub, W, visualsTab, "Color Correction")
+    ccMod.OnToggle = function(v)
+        if Hub.Features.ColorCorrection then
+            if v then Hub.Features.ColorCorrection.Enable() else Hub.Features.ColorCorrection.Disable() end
         end
     end
-    Slider(Hub, W, atmMod, "Density", 0, 100, 30, function(v)
-        if Hub.Features.Atmosphere then Hub.Features.Atmosphere.SetDensity(v / 100) end
+    Slider(Hub, W, ccMod, "Brightness", 0, 200, 100, function(v)
+        if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetBrightness((v - 100) / 100) end
     end)
-    Slider(Hub, W, atmMod, "Offset", 0, 100, 0, function(v)
-        if Hub.Features.Atmosphere then Hub.Features.Atmosphere.SetOffset(v / 100) end
+    Slider(Hub, W, ccMod, "Contrast", 0, 200, 100, function(v)
+        if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetContrast((v - 100) / 100) end
     end)
-    Slider(Hub, W, atmMod, "Glare", 0, 100, 20, function(v)
-        if Hub.Features.Atmosphere then Hub.Features.Atmosphere.SetGlare(v / 100) end
+    Slider(Hub, W, ccMod, "Saturation", 0, 200, 100, function(v)
+        if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetSaturation((v - 100) / 100) end
     end)
-    Slider(Hub, W, atmMod, "Haze", 0, 100, 0, function(v)
-        if Hub.Features.Atmosphere then Hub.Features.Atmosphere.SetHaze(v / 100) end
-    end)
-    ColorPicker(Hub, W, atmMod, "Color", Color3.fromRGB(200, 200, 200), function(c)
-        if Hub.Features.Atmosphere then Hub.Features.Atmosphere.SetColor(c) end
+    ColorPicker(Hub, W, ccMod, "Tint", Color3.fromRGB(255, 255, 255), function(c)
+        if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
     combatTab.Select(false)
