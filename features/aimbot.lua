@@ -17,10 +17,11 @@ return function(Hub)
     local FOVCircle = Drawing.new("Circle")
     FOVCircle.Thickness = 2
     FOVCircle.Color = Color3.fromRGB(255, 255, 255)
-    FOVCircle.Transparency = 0
+    FOVCircle.Transparency = 1
     FOVCircle.Filled = false
     FOVCircle.Visible = false
     FOVCircle.Radius = Aimbot.FOV
+    FOVCircle.NumSides = 64
 
     local function GetFolder()
         return workspace:FindFirstChild("Characters")
@@ -155,6 +156,7 @@ return function(Hub)
         if Aimbot.DrawFOV then
             FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
             FOVCircle.Radius = Aimbot.FOV
+            FOVCircle.Transparency = 1
             FOVCircle.Visible = true
         else
             FOVCircle.Visible = false
