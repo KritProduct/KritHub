@@ -43,6 +43,8 @@ local cc = load("features/colorcorrection.lua")
 if cc then Hub.Features.ColorCorrection = cc(Hub) end
 local antiflash = load("features/antiflash.lua")
 if antiflash then Hub.Features.AntiFlash = antiflash(Hub) end
+local visualsPlayers = load("features/visuals_players.lua")
+if visualsPlayers then Hub.Features.VisualsPlayers = visualsPlayers(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
