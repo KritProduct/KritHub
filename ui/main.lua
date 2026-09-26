@@ -84,6 +84,29 @@ function UI.Build(Hub)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
     end)
 
+    local chams = Module.Create(Hub, W, visualsTab, "Chams")
+    chams.OnToggle = function(v)
+        if Hub.Features.VisualsPlayers then
+            if v then Hub.Features.VisualsPlayers.EnableChams() else Hub.Features.VisualsPlayers.DisableChams() end
+        end
+    end
+    Toggle(Hub, W, chams, "Through Walls", true, function(v)
+        if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.ChamsThroughWalls = v end
+    end)
+    Slider(Hub, W, chams, "Fill Opacity", 0, 100, 50, function(v)
+        if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.ChamsFillTransparency = 1 - (v / 100) end
+    end)
+
+    local skel = Module.Create(Hub, W, visualsTab, "Skeleton ESP")
+    skel.OnToggle = function(v)
+        if Hub.Features.VisualsPlayers then
+            if v then Hub.Features.VisualsPlayers.EnableSkeleton() else Hub.Features.VisualsPlayers.DisableSkeleton() end
+        end
+    end
+    Toggle(Hub, W, skel, "Through Walls", true, function(v)
+        if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.SkeletonThroughWalls = v end
+    end)
+
     local afMod = Module.Create(Hub, W, visualsTab, "Anti Flash")
     afMod.OnToggle = function(v)
         if Hub.Features.AntiFlash then
