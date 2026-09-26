@@ -4,6 +4,7 @@ function Window.Create(Hub)
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
     local T = Hub.Theme
     local U = Hub.Utils
@@ -65,7 +66,7 @@ function Window.Create(Hub)
     accentLine.Parent = W.Header
 
     local dragHandle = Instance.new("TextButton")
-    dragHandle.Size = UDim2.new(1, -110, 1, 0)
+    dragHandle.Size = UDim2.new(1, -200, 1, 0)
     dragHandle.BackgroundTransparency = 1
     dragHandle.Text = ""
     dragHandle.ZIndex = 3
@@ -146,6 +147,7 @@ function Window.Create(Hub)
     W.Content.BackgroundColor3 = T.Settings
     W.Content.BackgroundTransparency = 0.15
     W.Content.BorderSizePixel = 0
+    W.Content.ClipsDescendants = true
     W.Content.ZIndex = 2
     W.Content.Parent = W.Main
     U.Corner(W.Content, UDim.new(0, 12))
@@ -155,11 +157,11 @@ function Window.Create(Hub)
     W.ContentScroll.Position = UDim2.new(0, 8, 0, 8)
     W.ContentScroll.BackgroundTransparency = 1
     W.ContentScroll.BorderSizePixel = 0
-    W.ContentScroll.ScrollBarThickness = 6
+    W.ContentScroll.ScrollBarThickness = 5
     W.ContentScroll.ScrollBarImageColor3 = T.Accent
-    W.ContentScroll.ScrollBarImageTransparency = 0.3
+    W.ContentScroll.ScrollBarImageTransparency = 0
     W.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.None
     W.ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.Always
     W.ContentScroll.ZIndex = 3
@@ -222,6 +224,36 @@ function Window.Create(Hub)
             end)
         end)
     end
+
+    function W.RecalcCanvas()
+        local scroll = W.ContentScroll
+        if not scroll then return end
+
+        local maxY = 0
+        for _, child in ipairs(scroll:GetChildren()) do
+            if child:IsA("GuiObject") and child.Visible then
+                local bottom = child.Position.Y.Offset + child.Size.Y.Offset
+                if bottom > maxY then maxY = bottom end
+            end
+        end
+
+        local windowY = scroll.AbsoluteSize.Y
+        local minHeight = windowY + 80
+
+        local final = maxY + 80
+        if final < minHeight then final = minHeight end
+
+        scroll.CanvasSize = UDim2.new(0, 0, 0, final)
+    end
+
+    task.spawn(function()
+        while W.Gui and W.Gui.Parent do
+            task.wait(0.2)
+            if W.Gui.Enabled then
+                pcall(W.RecalcCanvas)
+            end
+        end
+    end)
 
     function W.FadeIn()
         W.Main.BackgroundTransparency = 1
