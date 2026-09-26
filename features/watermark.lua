@@ -1,6 +1,7 @@
 return function(Hub)
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
     local Stats = game:GetService("Stats")
     local LocalPlayer = Players.LocalPlayer
     local T = Hub.Theme
@@ -19,6 +20,10 @@ return function(Hub)
     local infoLabel = nil
     local updateConn = nil
 
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
     local function build()
         screenGui = Instance.new("ScreenGui")
         screenGui.Name = "KritHubWatermark"
@@ -28,10 +33,11 @@ return function(Hub)
         screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
         frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 340, 0, 30)
+        frame.Size = UDim2.new(0, 380, 0, 30)
         frame.Position = UDim2.new(0, 20, 0, 20)
         frame.BackgroundColor3 = T.Background
         frame.BorderSizePixel = 0
+        frame.Active = true
         frame.Parent = screenGui
 
         local corner = Instance.new("UICorner")
@@ -60,6 +66,7 @@ return function(Hub)
         brandLabel.Font = Enum.Font.GothamBold
         brandLabel.TextSize = 14
         brandLabel.TextXAlignment = Enum.TextXAlignment.Left
+        brandLabel.ZIndex = 2
         brandLabel.Parent = frame
 
         separator = Instance.new("Frame")
@@ -67,6 +74,7 @@ return function(Hub)
         separator.Position = UDim2.new(0, 105, 0.5, -8)
         separator.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
         separator.BorderSizePixel = 0
+        separator.ZIndex = 2
         separator.Parent = frame
 
         infoLabel = Instance.new("TextLabel")
@@ -78,7 +86,39 @@ return function(Hub)
         infoLabel.Font = Enum.Font.Gotham
         infoLabel.TextSize = 12
         infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+        infoLabel.ZIndex = 2
         infoLabel.Parent = frame
+
+        local dragHandle = Instance.new("TextButton")
+        dragHandle.Size = UDim2.new(1, 0, 1, 0)
+        dragHandle.BackgroundTransparency = 1
+        dragHandle.Text = ""
+        dragHandle.ZIndex = 5
+        dragHandle.AutoButtonColor = false
+        dragHandle.Parent = frame
+
+        dragHandle.MouseButton1Down:Connect(function()
+            dragging = true
+            dragStart = UserInputService:GetMouseLocation()
+            startPos = frame.Position
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local m = UserInputService:GetMouseLocation()
+                local delta = m - dragStart
+                frame.Position = UDim2.new(
+                    startPos.X.Scale, startPos.X.Offset + delta.X,
+                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
+                )
+            end
+        end)
+
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
     end
 
     local function destroy()
@@ -126,7 +166,17 @@ return function(Hub)
             table.insert(parts, string.format("%02d:%02d:%02d", t.hour, t.min, t.sec))
         end
 
-        infoLabel.Text = table.concat(parts, "  |  ")
+        local text = table.concat(parts, "  |  ")
+        infoLabel.Text = text
+
+        local charWidth = 6.5
+        local estimatedTextWidth = #text * charWidth
+        local neededWidth = 130 + estimatedTextWidth
+
+        if neededWidth < 200 then neededWidth = 200 end
+
+        frame.Size = UDim2.new(0, neededWidth, 0, 30)
+        infoLabel.Size = UDim2.new(1, -125, 1, 0)
     end
 
     function Watermark.Enable()
