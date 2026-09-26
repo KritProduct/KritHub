@@ -4,13 +4,13 @@ return function(Hub)
     local UserInputService = game:GetService("UserInputService")
     local LocalPlayer = Players.LocalPlayer
     local VirtualInputManager = game:GetService("VirtualInputManager")
+    local Mouse = LocalPlayer:GetMouse()
 
     local TriggerBot = {}
     TriggerBot.Enabled = false
     TriggerBot.NoFriendDamage = true
     TriggerBot.WallCheck = true
     TriggerBot.TargetMode = "Head"
-    TriggerBot.PixelThreshold = 30
     TriggerBot.ShotDelay = 100
 
     local lastShot = 0
@@ -91,59 +91,45 @@ return function(Hub)
         return false
     end
 
-    local function GetPartsToCheck(ch)
-        local list = {}
+    local function IsPartAllowed(part)
+        if not part then return false end
+
         if TriggerBot.TargetMode == "Head" then
-            local h = ch:FindFirstChild("Head")
-            if h then table.insert(list, h) end
+            return part.Name == "Head"
         elseif TriggerBot.TargetMode == "Torso" then
-            local t = ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso")
-            if t then table.insert(list, t) end
+            return part.Name == "UpperTorso" or part.Name == "Torso" or part.Name == "LowerTorso"
         else
-            local h = ch:FindFirstChild("Head")
-            local t = ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso")
-            if h then table.insert(list, h) end
-            if t then table.insert(list, t) end
+            return part.Name == "Head" or part.Name == "UpperTorso" or part.Name == "Torso" or part.Name == "LowerTorso"
         end
-        return list
     end
 
-    local function FindTarget()
-        local cam = workspace.CurrentCamera
-        if not cam then return nil end
+    local function FindTargetUnderCrosshair()
+        local target = Mouse.Target
+        if not target then return nil end
 
-        local mouse = UserInputService:GetMouseLocation()
+        local ch = target:FindFirstAncestorOfClass("Model")
+        if not ch then return nil end
+
         local folder = GetFolder()
         if not folder then return nil end
+        if not ch:IsDescendantOf(folder) then return nil end
 
-        local myTeam = GetMyTeam()
+        if ch == LocalPlayer.Character then return nil end
+        if not IsAlive(ch) then return nil end
 
-        for _, ch in ipairs(folder:GetChildren()) do
-            if ch:IsA("Model") and ch ~= LocalPlayer.Character and IsAlive(ch) then
-                local isFriend = false
-                if TriggerBot.NoFriendDamage and myTeam then
-                    local t = GetTeam(ch)
-                    if t == myTeam then isFriend = true end
-                end
+        if not IsPartAllowed(target) then return nil end
 
-                if not isFriend then
-                    local parts = GetPartsToCheck(ch)
-                    for _, part in ipairs(parts) do
-                        local sp, onScreen = cam:WorldToViewportPoint(part.Position)
-                        if onScreen then
-                            local dx = math.abs(sp.X - mouse.X)
-                            local dy = math.abs(sp.Y - mouse.Y)
-                            if dx < TriggerBot.PixelThreshold and dy < TriggerBot.PixelThreshold then
-                                if IsVisible(ch) then
-                                    return ch
-                                end
-                            end
-                        end
-                    end
-                end
+        if TriggerBot.NoFriendDamage then
+            local myTeam = GetMyTeam()
+            if myTeam then
+                local theirTeam = GetTeam(ch)
+                if theirTeam == myTeam then return nil end
             end
         end
-        return nil
+
+        if not IsVisible(ch) then return nil end
+
+        return ch
     end
 
     local function Fire()
@@ -162,7 +148,7 @@ return function(Hub)
         if not TriggerBot.Enabled then return end
         if tick() - lastShot < (TriggerBot.ShotDelay / 1000) then return end
 
-        local target = FindTarget()
+        local target = FindTargetUnderCrosshair()
         if target then
             lastShot = tick()
             Fire()
