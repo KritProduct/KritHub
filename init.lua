@@ -33,6 +33,12 @@ local aim = load("features/aimbot.lua")
 if aim then Hub.Features.Aimbot = aim(Hub) end
 local esp = load("features/esp.lua")
 if esp then Hub.Features.ESP = esp(Hub) end
+local timechanger = load("features/timechanger.lua")
+if timechanger then Hub.Features.TimeChanger = timechanger(Hub) end
+local fog = load("features/fog.lua")
+if fog then Hub.Features.Fog = fog(Hub) end
+local atmosphere = load("features/atmosphere.lua")
+if atmosphere then Hub.Features.Atmosphere = atmosphere(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
@@ -41,6 +47,7 @@ Hub.UI.Module = load("ui/module.lua")
 Hub.UI.Elements = {
     Toggle = load("ui/elements/toggle.lua"),
     Slider = load("ui/elements/slider.lua"),
+    ColorPicker = load("ui/elements/colorpicker.lua"),
 }
 Hub.UI.Main = load("ui/main.lua")
 
