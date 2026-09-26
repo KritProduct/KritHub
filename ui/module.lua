@@ -85,7 +85,7 @@ function Module.Create(Hub, W, tab, name)
     settings.Size = UDim2.new(1, -16, 0, 0)
     settings.Position = UDim2.new(0, 8, 0, 44)
     settings.BackgroundTransparency = 1
-    settings.ClipsDescendants = true
+    settings.ClipsDescendants = false
     settings.ZIndex = 4
     settings.Parent = frame
 
