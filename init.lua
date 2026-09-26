@@ -45,6 +45,10 @@ local antiflash = load("features/antiflash.lua")
 if antiflash then Hub.Features.AntiFlash = antiflash(Hub) end
 local visualsPlayers = load("features/visuals_players.lua")
 if visualsPlayers then Hub.Features.VisualsPlayers = visualsPlayers(Hub) end
+local rejoin = load("features/rejoin.lua")
+if rejoin then Hub.Features.Rejoin = rejoin(Hub) end
+local antiafk = load("features/antiafk.lua")
+if antiafk then Hub.Features.AntiAFK = antiafk(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
@@ -55,6 +59,7 @@ Hub.UI.Elements = {
     Slider = load("ui/elements/slider.lua"),
     ColorPicker = load("ui/elements/colorpicker.lua"),
     Dropdown = load("ui/elements/dropdown.lua"),
+    Button = load("ui/elements/button.lua"),
 }
 Hub.UI.Main = load("ui/main.lua")
 
