@@ -81,11 +81,19 @@ function Module.Create(Hub, W, tab, name)
     bind.Parent = head
     U.Corner(bind, UDim.new(0, 6))
 
-    local settings = Instance.new("Frame")
+    local settings = Instance.new("ScrollingFrame")
     settings.Size = UDim2.new(1, -16, 0, 0)
     settings.Position = UDim2.new(0, 8, 0, 44)
     settings.BackgroundTransparency = 1
-    settings.ClipsDescendants = false
+    settings.BorderSizePixel = 0
+    settings.ScrollBarThickness = 4
+    settings.ScrollBarImageColor3 = T.Accent
+    settings.ScrollBarImageTransparency = 0
+    settings.CanvasSize = UDim2.new(0, 0, 0, 0)
+    settings.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    settings.ScrollingDirection = Enum.ScrollingDirection.Y
+    settings.ElasticBehavior = Enum.ElasticBehavior.Always
+    settings.ClipsDescendants = true
     settings.ZIndex = 4
     settings.Parent = frame
 
@@ -167,9 +175,16 @@ function Module.Create(Hub, W, tab, name)
     expand.MouseButton1Click:Connect(function()
         mod.Open = not mod.Open
 
-        local targetHeight = 40
+        local settingsHeight = 0
+        for _, el in ipairs(mod.Elements) do
+            settingsHeight = settingsHeight + el.Frame.Size.Y.Offset + 4
+        end
+
+        local maxSettingsHeight = 200
+        local targetHeight = 40 + 8
         if mod.Open then
-            targetHeight = 40 + 8 + #mod.Elements * 32 + 8
+            local visibleHeight = math.min(settingsHeight, maxSettingsHeight)
+            targetHeight = 40 + 8 + visibleHeight + 8
         end
 
         TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -178,7 +193,7 @@ function Module.Create(Hub, W, tab, name)
 
         if mod.Open then
             settings.Visible = true
-            settings.Size = UDim2.new(1, -16, 0, targetHeight - 52)
+            settings.Size = UDim2.new(1, -16, 0, math.min(settingsHeight, maxSettingsHeight))
             for i, el in ipairs(mod.Elements) do
                 el.Frame.Visible = true
                 el.Frame.BackgroundTransparency = 1
