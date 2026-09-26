@@ -1,66 +1,75 @@
-﻿local BASE = "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/KritHub"
-local USE_GITHUB = false
+﻿local BASE = "https://raw.githubusercontent.com/KritProduct/KritHub/main"
 
-local function getSource(path)
-    if USE_GITHUB then
-        return game:HttpGet(BASE .. "/" .. path .. ".lua")
-    end
-    return nil
-end
-
-local folder = script and script.Parent or nil
 local function load(path)
-    if USE_GITHUB then
-        return loadstring(getSource(path))()
+    local url = BASE .. "/" .. path
+    local ok, res = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if not ok or not res or res == "" then
+        warn("[KritHub] failed to fetch: " .. url)
+        return nil
     end
-    return nil
+    local fn, err = loadstring(res)
+    if not fn then
+        warn("[KritHub] loadstring error in " .. path .. ": " .. tostring(err))
+        return nil
+    end
+    local ok2, mod = pcall(fn)
+    if not ok2 then
+        warn("[KritHub] runtime error in " .. path .. ": " .. tostring(mod))
+        return nil
+    end
+    return mod
 end
 
-if USE_GITHUB then
-    local Hub = {}
-    Hub.Theme = load("core/theme")
-    Hub.State = load("core/state")
-    Hub.Utils = load("core/utils")
-    Hub.Input = load("core/input")
-    Hub.Window = load("ui/window")
-    Hub.Tabs = load("ui/tabs")
-    Hub.Module = load("ui/module")
-    Hub.Elements = {
-        Toggle = load("ui/elements/toggle"),
-        Slider = load("ui/elements/slider"),
-        Keybind = load("ui/elements/keybind"),
-        Dropdown = load("ui/elements/dropdown"),
-        ColorPicker = load("ui/elements/colorpicker"),
-        Button = load("ui/elements/button"),
-    }
-    Hub.Features = {
-        Aimbot = load("features/aimbot")(Hub),
-        ESP = load("features/esp")(Hub),
-    }
+print("[KritHub] downloading modules...")
+
+local Hub = {}
+
+Hub.Theme = load("core/theme.lua")
+Hub.State = load("core/state.lua")
+Hub.Utils = load("core/utils.lua")
+Hub.Input = load("core/input.lua")
+Hub.Window = load("ui/window.lua")
+Hub.Tabs = load("ui/tabs.lua")
+Hub.Module = load("ui/module.lua")
+
+Hub.Elements = {
+    Toggle = load("ui/elements/toggle.lua"),
+    Slider = load("ui/elements/slider.lua"),
+    Keybind = load("ui/elements/keybind.lua"),
+    Dropdown = load("ui/elements/dropdown.lua"),
+    ColorPicker = load("ui/elements/colorpicker.lua"),
+    Button = load("ui/elements/button.lua"),
+}
+
+Hub.Features = {}
+
+local aimbotLoader = load("features/aimbot.lua")
+if aimbotLoader then Hub.Features.Aimbot = aimbotLoader(Hub) end
+
+local espLoader = load("features/esp.lua")
+if espLoader then Hub.Features.ESP = espLoader(Hub) end
+
+if Hub.Window and Hub.Window.Init then
     Hub.Window.Init(Hub)
-    load("tabs/movement")(Hub)
-    load("tabs/visuals")(Hub)
-    load("tabs/combat")(Hub)
-    load("tabs/misc")(Hub)
-    Hub.Input.Init(Hub)
-    return Hub
-else
-    local Hub = {
-        Theme = _G.KritHub.Theme,
-        State = _G.KritHub.State,
-        Utils = _G.KritHub.Utils,
-        Input = _G.KritHub.Input,
-        Window = _G.KritHub.Window,
-        Tabs = _G.KritHub.Tabs,
-        Module = _G.KritHub.Module,
-        Elements = _G.KritHub.Elements,
-        Features = _G.KritHub.Features,
-    }
-    Hub.Window.Init(Hub)
-    _G.KritHub.Tabs_movement(Hub)
-    _G.KritHub.Tabs_visuals(Hub)
-    _G.KritHub.Tabs_combat(Hub)
-    _G.KritHub.Tabs_misc(Hub)
-    Hub.Input.Init(Hub)
-    return Hub
 end
+
+local movTab = load("tabs/movement.lua")
+if movTab then movTab(Hub) end
+
+local visTab = load("tabs/visuals.lua")
+if visTab then visTab(Hub) end
+
+local cmbTab = load("tabs/combat.lua")
+if cmbTab then cmbTab(Hub) end
+
+local miscTab = load("tabs/misc.lua")
+if miscTab then miscTab(Hub) end
+
+if Hub.Input and Hub.Input.Init then
+    Hub.Input.Init(Hub)
+end
+
+print("[KritHub] loaded")
+return Hub
