@@ -58,6 +58,14 @@ return function(Hub)
         return ch:FindFirstChild("Head")
     end
 
+    local function IsBlocking(inst)
+        if not inst then return false end
+        if not inst:IsA("BasePart") then return false end
+        if inst.CanCollide == true then return true end
+        if inst.Transparency < 1 then return true end
+        return false
+    end
+
     local function IsVisible(ch, targetPart)
         if not Aimbot.WallCheck then return true end
 
@@ -69,31 +77,56 @@ return function(Hub)
         if not head then return false end
 
         local ignore = {char}
+
         local folder = GetFolder()
         if folder then
             for _, other in ipairs(folder:GetChildren()) do
                 if other:IsA("Model") then
-                    for _, d in ipairs(other:GetDescendants()) do
-                        if d ~= head then
-                            table.insert(ignore, d)
+                    if other == ch then
+                        for _, d in ipairs(other:GetDescendants()) do
+                            if d ~= head and d ~= targetPart then
+                                table.insert(ignore, d)
+                            end
                         end
+                    else
+                        table.insert(ignore, other)
                     end
                 end
             end
         end
 
-        local params = RaycastParams.new()
-        params.FilterType = Enum.RaycastFilterType.Exclude
-        params.FilterDescendantsInstances = ignore
-        params.IgnoreWater = true
-
         local origin = cam.CFrame.Position
-        local dir = head.Position - origin
-        local ray = workspace:Raycast(origin, dir, params)
+        local targetPos = targetPart and targetPart.Position or head.Position
 
-        if ray == nil then return true end
-        if ray.Instance == head then return true end
-        return false
+        for i = 1, 20 do
+            local params = RaycastParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params.FilterDescendantsInstances = ignore
+            params.IgnoreWater = true
+
+            local dir = targetPos - origin
+            local ray = workspace:Raycast(origin, dir, params)
+
+            if ray == nil then
+                return true
+            end
+
+            if ray.Instance == head then
+                return true
+            end
+
+            if ray.Instance == targetPart then
+                return true
+            end
+
+            if IsBlocking(ray.Instance) then
+                return false
+            end
+
+            table.insert(ignore, ray.Instance)
+        end
+
+        return true
     end
 
     local function GetClosestTarget()

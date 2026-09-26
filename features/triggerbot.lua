@@ -40,7 +40,15 @@ return function(Hub)
         return GetTeam(me)
     end
 
-    local function IsVisible(targetCh)
+    local function IsBlocking(inst)
+        if not inst then return false end
+        if not inst:IsA("BasePart") then return false end
+        if inst.CanCollide == true then return true end
+        if inst.Transparency < 1 then return true end
+        return false
+    end
+
+    local function IsVisible(targetCh, targetPart)
         if not TriggerBot.WallCheck then return true end
 
         local char = LocalPlayer.Character
@@ -71,24 +79,29 @@ return function(Hub)
             end
         end
 
-        local params = RaycastParams.new()
-        params.FilterType = Enum.RaycastFilterType.Exclude
-        params.FilterDescendantsInstances = ignore
-        params.IgnoreWater = true
-
         local origin = cam.CFrame.Position
+        local targetPos = targetPart and targetPart.Position or head.Position
 
-        if head then
-            local ray = workspace:Raycast(origin, head.Position - origin, params)
-            if ray == nil or ray.Instance == head then return true end
+        for i = 1, 20 do
+            local params = RaycastParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params.FilterDescendantsInstances = ignore
+            params.IgnoreWater = true
+
+            local dir = targetPos - origin
+            local ray = workspace:Raycast(origin, dir, params)
+
+            if ray == nil then return true end
+            if ray.Instance == head then return true end
+            if ray.Instance == torso then return true end
+            if ray.Instance == targetPart then return true end
+
+            if IsBlocking(ray.Instance) then return false end
+
+            table.insert(ignore, ray.Instance)
         end
 
-        if torso then
-            local ray = workspace:Raycast(origin, torso.Position - origin, params)
-            if ray == nil or ray.Instance == torso then return true end
-        end
-
-        return false
+        return true
     end
 
     local function IsPartAllowed(part)
@@ -127,7 +140,7 @@ return function(Hub)
             end
         end
 
-        if not IsVisible(ch) then return nil end
+        if not IsVisible(ch, target) then return nil end
 
         return ch
     end
