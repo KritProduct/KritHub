@@ -39,6 +39,8 @@ local fog = load("features/fog.lua")
 if fog then Hub.Features.Fog = fog(Hub) end
 local cc = load("features/colorcorrection.lua")
 if cc then Hub.Features.ColorCorrection = cc(Hub) end
+local antiflash = load("features/antiflash.lua")
+if antiflash then Hub.Features.AntiFlash = antiflash(Hub) end
 
 Hub.UI = {}
 Hub.UI.Window = load("ui/window.lua")
