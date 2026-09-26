@@ -1,9 +1,18 @@
 return function(Hub)
     local Config = {}
-    Config.File = "KritHub_config.json"
+    Config.Folder = "KritHub_Configs"
+    Config.Extension = ".json"
 
-    local function hasFileApi()
-        return writefile and readfile and isfile
+    local function ensureFolder()
+        if not isfolder or not makefolder then return false end
+        if not isfolder(Config.Folder) then
+            pcall(makefolder, Config.Folder)
+        end
+        return true
+    end
+
+    local function hasApi()
+        return writefile and readfile and isfile and listfiles and delfile
     end
 
     local function collectSettings()
@@ -12,34 +21,24 @@ return function(Hub)
         local A = Hub.Features.Aimbot
         if A then
             data.Aimbot = {
-                FOV = A.FOV,
-                Speed = A.Speed,
-                TargetPart = A.TargetPart,
-                WallCheck = A.WallCheck,
-                FriendCheck = A.FriendCheck,
-                DrawFOV = A.DrawFOV,
+                FOV = A.FOV, Speed = A.Speed, TargetPart = A.TargetPart,
+                WallCheck = A.WallCheck, FriendCheck = A.FriendCheck, DrawFOV = A.DrawFOV,
             }
         end
 
         local T = Hub.Features.TriggerBot
         if T then
             data.TriggerBot = {
-                NoFriendDamage = T.NoFriendDamage,
-                WallCheck = T.WallCheck,
-                TargetMode = T.TargetMode,
-                ShotDelay = T.ShotDelay,
+                NoFriendDamage = T.NoFriendDamage, WallCheck = T.WallCheck,
+                TargetMode = T.TargetMode, ShotDelay = T.ShotDelay,
             }
         end
 
         local E = Hub.Features.ESP
         if E then
             data.ESP = {
-                Box = E.Box,
-                Name = E.Name,
-                Health = E.Health,
-                Distance = E.Distance,
-                Line = E.Line,
-                MaxDist = E.MaxDist,
+                Box = E.Box, Name = E.Name, Health = E.Health,
+                Distance = E.Distance, Line = E.Line, MaxDist = E.MaxDist,
             }
         end
 
@@ -54,40 +53,27 @@ return function(Hub)
 
         local F = Hub.Features.Fog
         if F then
-            data.Fog = {
-                Density = F.Density,
-                Haze = F.Haze,
-                Glare = F.Glare,
-                Offset = F.Offset,
-            }
+            data.Fog = { Density = F.Density, Haze = F.Haze, Glare = F.Glare, Offset = F.Offset }
         end
 
         local CC = Hub.Features.ColorCorrection
         if CC then
-            data.ColorCorrection = {
-                Brightness = CC.Brightness,
-                Contrast = CC.Contrast,
-                Saturation = CC.Saturation,
-            }
+            data.ColorCorrection = { Brightness = CC.Brightness, Contrast = CC.Contrast, Saturation = CC.Saturation }
         end
 
         local W = Hub.Features.Watermark
         if W then
             data.Watermark = {
-                ShowFPS = W.ShowFPS,
-                ShowPing = W.ShowPing,
-                ShowTime = W.ShowTime,
-                ShowUsername = W.ShowUsername,
+                ShowFPS = W.ShowFPS, ShowPing = W.ShowPing,
+                ShowTime = W.ShowTime, ShowUsername = W.ShowUsername,
             }
         end
 
         local AFK = Hub.Features.AntiAFK
         if AFK then
             data.AntiAFK = {
-                Interval = AFK.Interval,
-                DoRotate = AFK.DoRotate,
-                DoJump = AFK.DoJump,
-                DoClick = AFK.DoClick,
+                Interval = AFK.Interval, DoRotate = AFK.DoRotate,
+                DoJump = AFK.DoJump, DoClick = AFK.DoClick,
             }
         end
 
@@ -98,8 +84,7 @@ return function(Hub)
         if not data then return end
 
         if data.Aimbot and Hub.Features.Aimbot then
-            local A = Hub.Features.Aimbot
-            local d = data.Aimbot
+            local A, d = Hub.Features.Aimbot, data.Aimbot
             if d.FOV then A.FOV = d.FOV end
             if d.Speed then A.Speed = d.Speed end
             if d.TargetPart then A.TargetPart = d.TargetPart end
@@ -109,8 +94,7 @@ return function(Hub)
         end
 
         if data.TriggerBot and Hub.Features.TriggerBot then
-            local T = Hub.Features.TriggerBot
-            local d = data.TriggerBot
+            local T, d = Hub.Features.TriggerBot, data.TriggerBot
             if d.NoFriendDamage ~= nil then T.NoFriendDamage = d.NoFriendDamage end
             if d.WallCheck ~= nil then T.WallCheck = d.WallCheck end
             if d.TargetMode then T.TargetMode = d.TargetMode end
@@ -118,8 +102,7 @@ return function(Hub)
         end
 
         if data.ESP and Hub.Features.ESP then
-            local E = Hub.Features.ESP
-            local d = data.ESP
+            local E, d = Hub.Features.ESP, data.ESP
             if d.Box ~= nil then E.Box = d.Box end
             if d.Name ~= nil then E.Name = d.Name end
             if d.Health ~= nil then E.Health = d.Health end
@@ -129,16 +112,14 @@ return function(Hub)
         end
 
         if data.VisualsPlayers and Hub.Features.VisualsPlayers then
-            local V = Hub.Features.VisualsPlayers
-            local d = data.VisualsPlayers
+            local V, d = Hub.Features.VisualsPlayers, data.VisualsPlayers
             if d.ChamsThroughWalls ~= nil then V.ChamsThroughWalls = d.ChamsThroughWalls end
             if d.ChamsFillTransparency then V.ChamsFillTransparency = d.ChamsFillTransparency end
             if d.SkeletonThroughWalls ~= nil then V.SkeletonThroughWalls = d.SkeletonThroughWalls end
         end
 
         if data.Fog and Hub.Features.Fog then
-            local F = Hub.Features.Fog
-            local d = data.Fog
+            local F, d = Hub.Features.Fog, data.Fog
             if d.Density then F.Density = d.Density end
             if d.Haze then F.Haze = d.Haze end
             if d.Glare then F.Glare = d.Glare end
@@ -146,16 +127,14 @@ return function(Hub)
         end
 
         if data.ColorCorrection and Hub.Features.ColorCorrection then
-            local CC = Hub.Features.ColorCorrection
-            local d = data.ColorCorrection
+            local CC, d = Hub.Features.ColorCorrection, data.ColorCorrection
             if d.Brightness then CC.Brightness = d.Brightness end
             if d.Contrast then CC.Contrast = d.Contrast end
             if d.Saturation then CC.Saturation = d.Saturation end
         end
 
         if data.Watermark and Hub.Features.Watermark then
-            local W = Hub.Features.Watermark
-            local d = data.Watermark
+            local W, d = Hub.Features.Watermark, data.Watermark
             if d.ShowFPS ~= nil then W.ShowFPS = d.ShowFPS end
             if d.ShowPing ~= nil then W.ShowPing = d.ShowPing end
             if d.ShowTime ~= nil then W.ShowTime = d.ShowTime end
@@ -163,8 +142,7 @@ return function(Hub)
         end
 
         if data.AntiAFK and Hub.Features.AntiAFK then
-            local AFK = Hub.Features.AntiAFK
-            local d = data.AntiAFK
+            local AFK, d = Hub.Features.AntiAFK, data.AntiAFK
             if d.Interval then AFK.Interval = d.Interval end
             if d.DoRotate ~= nil then AFK.DoRotate = d.DoRotate end
             if d.DoJump ~= nil then AFK.DoJump = d.DoJump end
@@ -172,11 +150,19 @@ return function(Hub)
         end
     end
 
-    function Config.Save()
-        if not hasFileApi() then
-            warn("[KritHub] writefile not supported")
-            return
+    function Config.Save(name)
+        if not hasApi() then
+            warn("[KritHub] no file api")
+            return false
         end
+
+        ensureFolder()
+
+        if not name or name == "" then
+            name = "default"
+        end
+
+        local path = Config.Folder .. "/" .. name .. Config.Extension
 
         local data = collectSettings()
         local ok, encoded = pcall(function()
@@ -184,24 +170,26 @@ return function(Hub)
         end)
 
         if ok and encoded then
-            pcall(writefile, Config.File, encoded)
-            print("[KritHub] config saved to " .. Config.File)
+            local ok2 = pcall(writefile, path, encoded)
+            if ok2 then
+                print("[KritHub] config saved: " .. path)
+                return true
+            end
         end
+        return false
     end
 
-    function Config.Load()
-        if not hasFileApi() then
-            warn("[KritHub] readfile not supported")
-            return
+    function Config.Load(name)
+        if not hasApi() then return false end
+
+        local path = Config.Folder .. "/" .. name .. Config.Extension
+        if not isfile(path) then
+            warn("[KritHub] config not found: " .. path)
+            return false
         end
 
-        if not isfile(Config.File) then
-            warn("[KritHub] config file not found")
-            return
-        end
-
-        local ok, content = pcall(readfile, Config.File)
-        if not ok or not content then return end
+        local ok, content = pcall(readfile, path)
+        if not ok or not content then return false end
 
         local ok2, decoded = pcall(function()
             return game:GetService("HttpService"):JSONDecode(content)
@@ -209,16 +197,42 @@ return function(Hub)
 
         if ok2 and decoded then
             applySettings(decoded)
-            print("[KritHub] config loaded from " .. Config.File)
+            print("[KritHub] config loaded: " .. name)
+            return true
         end
+        return false
     end
 
-    function Config.Delete()
-        if not hasFileApi() then return end
-        if isfile(Config.File) then
-            pcall(delfile, Config.File)
-            print("[KritHub] config deleted")
+    function Config.Delete(name)
+        if not hasApi() then return false end
+        local path = Config.Folder .. "/" .. name .. Config.Extension
+        if isfile(path) then
+            pcall(delfile, path)
+            print("[KritHub] config deleted: " .. name)
+            return true
         end
+        return false
+    end
+
+    function Config.List()
+        if not hasApi() then return {} end
+        ensureFolder()
+
+        local files = {}
+        local ok, listed = pcall(listfiles, Config.Folder)
+        if not ok or not listed then return files end
+
+        for _, path in ipairs(listed) do
+            local name = path:match("([^/\\]+)" .. Config.Extension .. "$")
+            if name then
+                table.insert(files, name)
+            end
+        end
+        return files
+    end
+
+    function Config.HasApi()
+        return hasApi()
     end
 
     return Config
