@@ -153,7 +153,7 @@ return function(Hub)
             end
         end
 
-        if Aimbot.DrawFOV then
+        if Aimbot.Enabled and Aimbot.DrawFOV then
             FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
             FOVCircle.Radius = Aimbot.FOV
             FOVCircle.Transparency = 1
