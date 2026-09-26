@@ -34,8 +34,17 @@ if aim then Hub.Features.Aimbot = aim(Hub) end
 local esp = load("features/esp.lua")
 if esp then Hub.Features.ESP = esp(Hub) end
 
-Hub.UI = load("ui/main.lua")
-if Hub.UI then Hub.UI.Build(Hub) end
+Hub.UI = {}
+Hub.UI.Window = load("ui/window.lua")
+Hub.UI.Tabs = load("ui/tabs.lua")
+Hub.UI.Module = load("ui/module.lua")
+Hub.UI.Elements = {
+    Toggle = load("ui/elements/toggle.lua"),
+    Slider = load("ui/elements/slider.lua"),
+}
+Hub.UI.Main = load("ui/main.lua")
+
+if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
 
 print("[KritHub] loaded")
 return Hub
