@@ -1,4 +1,4 @@
-﻿local BASE = "https://raw.githubusercontent.com/KritProduct/KritHub/main"
+local BASE = "https://raw.githubusercontent.com/KritProduct/KritHub/main"
 
 local function load(path)
     local url = BASE .. "/" .. path
