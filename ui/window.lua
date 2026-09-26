@@ -101,7 +101,7 @@ function Window.Create(Hub)
     W.MinBtn.Position = UDim2.new(1, -80, 0, 11)
     W.MinBtn.BackgroundColor3 = T.Item
     W.MinBtn.BorderSizePixel = 0
-    W.MinBtn.Text = "Р Р†Р вЂљРІР‚Сњ"
+    W.MinBtn.Text = "—"
     W.MinBtn.TextColor3 = T.Text
     W.MinBtn.Font = Enum.Font.GothamBold
     W.MinBtn.TextSize = 16
@@ -157,11 +157,11 @@ function Window.Create(Hub)
     W.ContentScroll.BorderSizePixel = 0
     W.ContentScroll.ScrollBarThickness = 6
     W.ContentScroll.ScrollBarImageColor3 = T.Accent
+    W.ContentScroll.ScrollBarImageTransparency = 0.3
     W.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     W.ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.Always
-    W.ContentScroll.ScrollBarImageTransparency = 0.3
     W.ContentScroll.ZIndex = 3
     W.ContentScroll.Parent = W.Content
 
@@ -221,21 +221,6 @@ function Window.Create(Hub)
                 TweenService:Create(btn, TweenInfo.new(0.1), {Size = orig}):Play()
             end)
         end)
-    end
-
-    function W.RecalcCanvas()
-        local scroll = W.ContentScroll
-        if not scroll then return end
-
-        local maxY = 0
-        for _, child in ipairs(scroll:GetChildren()) do
-            if child:IsA("GuiObject") and child.Visible then
-                local bottom = child.Position.Y.Offset + child.Size.Y.Offset
-                if bottom > maxY then maxY = bottom end
-            end
-        end
-
-        scroll.CanvasSize = UDim2.new(0, 0, 0, maxY + 20)
     end
 
     function W.FadeIn()
