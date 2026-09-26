@@ -21,11 +21,17 @@ function UI.Build(Hub)
 
     local combatTab = TabsM.Create("Combat")
     local aim = Module.Create(Hub, W, combatTab, "Aimbot")
+
     aim.OnToggle = function(v)
         if Hub.Features.Aimbot then
             if v then Hub.Features.Aimbot.Enable() else Hub.Features.Aimbot.Disable() end
         end
     end
+
+    aim.OnBind = function(key)
+        aim.SetEnabled(not aim.Enabled)
+    end
+
     Toggle(Hub, W, aim, "Wall Check", false, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.WallCheck = v end
     end)
@@ -41,11 +47,17 @@ function UI.Build(Hub)
 
     local visualsTab = TabsM.Create("Visuals")
     local esp = Module.Create(Hub, W, visualsTab, "Player ESP")
+
     esp.OnToggle = function(v)
         if Hub.Features.ESP then
             if v then Hub.Features.ESP.Enable() else Hub.Features.ESP.Disable() end
         end
     end
+
+    esp.OnBind = function(key)
+        esp.SetEnabled(not esp.Enabled)
+    end
+
     Toggle(Hub, W, esp, "Show Box", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Box = v end end)
     Toggle(Hub, W, esp, "Show Name", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Name = v end end)
     Toggle(Hub, W, esp, "Show Health", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Health = v end end)
