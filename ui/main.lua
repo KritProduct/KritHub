@@ -54,11 +54,11 @@ function UI.Build(Hub)
             if v then Hub.Features.TriggerBot.Enable() else Hub.Features.TriggerBot.Disable() end
         end
     end
-    Toggle(Hub, W, trig, "Shoot Teammates", false, function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.Teammates = v end
+    Toggle(Hub, W, trig, "No Friend Damage", true, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.NoFriendDamage = v end
     end)
-    Toggle(Hub, W, trig, "Ignore Walls", true, function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.IgnoreWalls = v end
+    Toggle(Hub, W, trig, "Wall Check", true, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.WallCheck = v end
     end)
     Dropdown(Hub, W, trig, "Target Mode", {"Head", "Torso", "Both"}, "Head", function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetMode = v end
