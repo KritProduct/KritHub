@@ -206,35 +206,55 @@ function Module.Create(Hub, W, tab, name)
         expand.Text = mod.Open and "^" or "v"
     end)
 
-    local listeningBind = false
+    local listening = false
+    local ignoreNextMouse = false
+
+    local function setBind(keyName, keyCode)
+        mod.Bind = keyCode
+        bind.Text = keyName
+        W.Pulse(bind)
+        TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
+        task.delay(0.4, function()
+            TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
+        end)
+        if mod.OnBind then mod.OnBind(keyCode) end
+    end
+
     bind.MouseButton1Click:Connect(function()
-        listeningBind = true
+        if listening then
+            listening = false
+            bind.Text = "+"
+            TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Panel}):Play()
+            return
+        end
+        listening = true
+        ignoreNextMouse = true
         W.Pulse(bind)
         bind.Text = "..."
         TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
     end)
 
     UserInputService.InputBegan:Connect(function(input, gpe)
-        if not listeningBind then return end
+        if not listening then return end
+
         if input.UserInputType == Enum.UserInputType.Keyboard then
-            bind.Text = input.KeyCode.Name
-            listeningBind = false
-            mod.Bind = input.KeyCode
-            W.Pulse(bind)
-            TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
-            task.delay(0.4, function()
-                TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
-            end)
-            if mod.OnBind then mod.OnBind(input.KeyCode) end
+            listening = false
+            ignoreNextMouse = false
+            setBind(input.KeyCode.Name, input.KeyCode)
         elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            bind.Text = "LMB"
-            listeningBind = false
-            mod.Bind = "LMB"
-            W.Pulse(bind)
-            TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
-            task.delay(0.4, function()
-                TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
-            end)
+            if ignoreNextMouse then
+                ignoreNextMouse = false
+                return
+            end
+            listening = false
+            setBind("LMB", "LMB")
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            if ignoreNextMouse then
+                ignoreNextMouse = false
+                return
+            end
+            listening = false
+            setBind("RMB", "RMB")
         end
     end)
 
