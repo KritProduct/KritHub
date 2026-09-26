@@ -1,7 +1,5 @@
 local Module = {}
 
-local AllModules = {}
-
 function Module.Create(Hub, W, tab, name)
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
@@ -160,16 +158,6 @@ function Module.Create(Hub, W, tab, name)
     expand.MouseLeave:Connect(function()
         TweenService:Create(expand, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
     end)
-    bind.MouseEnter:Connect(function()
-        if not mod.Listening then
-            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
-        end
-    end)
-    bind.MouseLeave:Connect(function()
-        if not mod.Listening then
-            TweenService:Create(bind, TweenInfo.new(0.15), {BackgroundColor3 = T.Panel}):Play()
-        end
-    end)
 
     expand.MouseButton1Click:Connect(function()
         mod.Open = not mod.Open
@@ -226,12 +214,7 @@ function Module.Create(Hub, W, tab, name)
         mod.Listening = false
         mod.Bind = keyCode
         bind.Text = keyName
-        bind.BackgroundColor3 = T.Green
-        task.delay(0.6, function()
-            if not mod.Listening then
-                bind.BackgroundColor3 = T.Panel
-            end
-        end)
+        bind.BackgroundColor3 = T.Panel
     end
 
     local function cancelListening()
