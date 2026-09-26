@@ -101,7 +101,7 @@ function Window.Create(Hub)
     W.MinBtn.Position = UDim2.new(1, -80, 0, 11)
     W.MinBtn.BackgroundColor3 = T.Item
     W.MinBtn.BorderSizePixel = 0
-    W.MinBtn.Text = "Р Р†Р вЂљРІР‚Сњ"
+    W.MinBtn.Text = "—"
     W.MinBtn.TextColor3 = T.Text
     W.MinBtn.Font = Enum.Font.GothamBold
     W.MinBtn.TextSize = 16
@@ -155,13 +155,11 @@ function Window.Create(Hub)
     W.ContentScroll.Position = UDim2.new(0, 8, 0, 8)
     W.ContentScroll.BackgroundTransparency = 1
     W.ContentScroll.BorderSizePixel = 0
-    W.ContentScroll.ScrollBarThickness = 4
+    W.ContentScroll.ScrollBarThickness = 6
     W.ContentScroll.ScrollBarImageColor3 = T.Accent
     W.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     W.ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     W.ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
-    W.ContentScroll.ScrollBarThickness = 6
-    W.ContentScroll.ScrollBarImageColor3 = T.Accent
     W.ContentScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
     W.ContentScroll.ZIndex = 3
     W.ContentScroll.Parent = W.Content
@@ -209,7 +207,10 @@ function Window.Create(Hub)
     end)
 
     function W.Pulse(btn)
-        local orig = btn.Size
+        if not btn:GetAttribute("OrigSize") then
+            btn:SetAttribute("OrigSize", btn.Size)
+        end
+        local orig = btn:GetAttribute("OrigSize")
         local small = UDim2.new(0, orig.X.Offset - 3, 0, orig.Y.Offset - 3)
         local big = UDim2.new(0, orig.X.Offset + 1, 0, orig.Y.Offset + 1)
         TweenService:Create(btn, TweenInfo.new(0.07), {Size = small}):Play()
