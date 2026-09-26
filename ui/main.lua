@@ -8,12 +8,17 @@ function UI.Build(Hub)
     local T = Hub.Theme
     local U = Hub.Utils
 
+    local pg = player:WaitForChild("PlayerGui")
+    for _, g in ipairs(pg:GetChildren()) do
+        if g.Name == "KritHub" then g:Destroy() end
+    end
+
     local gui = Instance.new("ScreenGui")
     gui.Name = "KritHub"
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = true
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    gui.Parent = player:WaitForChild("PlayerGui")
+    gui.Parent = pg
 
     local main = Instance.new("Frame")
     main.Size = UDim2.new(0, 620, 0, 440)
@@ -21,10 +26,9 @@ function UI.Build(Hub)
     main.BackgroundColor3 = T.Background
     main.BorderSizePixel = 0
     main.Active = true
-    main.Draggable = true
     main.ClipsDescendants = true
     main.Parent = gui
-    U.Corner(main, UDim.new(0, 14))
+    U.Corner(main, UDim.new(0, 16))
 
     local mainGradient = Instance.new("UIGradient")
     mainGradient.Color = ColorSequence.new({
@@ -37,12 +41,22 @@ function UI.Build(Hub)
     local mainStroke = U.Stroke(main, T.Accent, 2)
 
     local header = Instance.new("Frame")
-    header.Size = UDim2.new(1, 0, 0, 46)
+    header.Size = UDim2.new(1, 0, 0, 48)
     header.BackgroundColor3 = T.Panel
     header.BackgroundTransparency = 0.15
     header.BorderSizePixel = 0
     header.ZIndex = 2
     header.Parent = main
+    U.Corner(header, UDim.new(0, 16))
+
+    local headerFix = Instance.new("Frame")
+    headerFix.Size = UDim2.new(1, 0, 0, 16)
+    headerFix.Position = UDim2.new(0, 0, 1, -16)
+    headerFix.BackgroundColor3 = T.Panel
+    headerFix.BackgroundTransparency = 0.15
+    headerFix.BorderSizePixel = 0
+    headerFix.ZIndex = 2
+    headerFix.Parent = header
 
     local accentLine = Instance.new("Frame")
     accentLine.Size = UDim2.new(1, 0, 0, 2)
@@ -51,6 +65,15 @@ function UI.Build(Hub)
     accentLine.BorderSizePixel = 0
     accentLine.ZIndex = 3
     accentLine.Parent = header
+
+    local dragHandle = Instance.new("TextButton")
+    dragHandle.Size = UDim2.new(1, -110, 1, 0)
+    dragHandle.Position = UDim2.new(0, 0, 0, 0)
+    dragHandle.BackgroundTransparency = 1
+    dragHandle.Text = ""
+    dragHandle.ZIndex = 3
+    dragHandle.AutoButtonColor = false
+    dragHandle.Parent = header
 
     local brand = Instance.new("TextLabel")
     brand.Size = UDim2.new(0, 220, 1, 0)
@@ -61,7 +84,7 @@ function UI.Build(Hub)
     brand.Font = Enum.Font.GothamBold
     brand.TextSize = 22
     brand.TextXAlignment = Enum.TextXAlignment.Left
-    brand.ZIndex = 3
+    brand.ZIndex = 4
     brand.Parent = header
 
     local version = Instance.new("TextLabel")
@@ -73,7 +96,7 @@ function UI.Build(Hub)
     version.Font = Enum.Font.Gotham
     version.TextSize = 12
     version.TextXAlignment = Enum.TextXAlignment.Left
-    version.ZIndex = 3
+    version.ZIndex = 4
     version.Parent = header
 
     local function pulse(btn)
@@ -91,31 +114,31 @@ function UI.Build(Hub)
 
     local minBtn = Instance.new("TextButton")
     minBtn.Size = UDim2.new(0, 32, 0, 26)
-    minBtn.Position = UDim2.new(1, -80, 0, 10)
+    minBtn.Position = UDim2.new(1, -80, 0, 11)
     minBtn.BackgroundColor3 = T.Item
     minBtn.BorderSizePixel = 0
     minBtn.Text = "—"
     minBtn.TextColor3 = T.Text
     minBtn.Font = Enum.Font.GothamBold
     minBtn.TextSize = 16
-    minBtn.ZIndex = 3
+    minBtn.ZIndex = 4
     minBtn.AutoButtonColor = false
     minBtn.Parent = header
-    U.Corner(minBtn, T.CornerSmall)
+    U.Corner(minBtn, UDim.new(0, 8))
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 32, 0, 26)
-    closeBtn.Position = UDim2.new(1, -42, 0, 10)
+    closeBtn.Position = UDim2.new(1, -42, 0, 11)
     closeBtn.BackgroundColor3 = T.Red
     closeBtn.BorderSizePixel = 0
     closeBtn.Text = "X"
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.TextSize = 14
-    closeBtn.ZIndex = 3
+    closeBtn.ZIndex = 4
     closeBtn.AutoButtonColor = false
     closeBtn.Parent = header
-    U.Corner(closeBtn, T.CornerSmall)
+    U.Corner(closeBtn, UDim.new(0, 8))
 
     minBtn.MouseEnter:Connect(function()
         TweenService:Create(minBtn, TweenInfo.new(0.15), {BackgroundColor3 = T.ItemHover}):Play()
@@ -130,15 +153,39 @@ function UI.Build(Hub)
         TweenService:Create(closeBtn, TweenInfo.new(0.15), {BackgroundColor3 = T.Red}):Play()
     end)
 
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    dragHandle.MouseButton1Down:Connect(function()
+        dragging = true
+        dragStart = UserInputService:GetMouseLocation()
+        startPos = main.Position
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local m = UserInputService:GetMouseLocation()
+            local delta = m - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
     local sidebar = Instance.new("Frame")
-    sidebar.Size = UDim2.new(0, 150, 1, -66)
-    sidebar.Position = UDim2.new(0, 10, 0, 56)
+    sidebar.Size = UDim2.new(0, 150, 1, -70)
+    sidebar.Position = UDim2.new(0, 10, 0, 60)
     sidebar.BackgroundColor3 = T.Panel
     sidebar.BackgroundTransparency = 0.15
     sidebar.BorderSizePixel = 0
     sidebar.ZIndex = 2
     sidebar.Parent = main
-    U.Corner(sidebar, UDim.new(0, 10))
+    U.Corner(sidebar, UDim.new(0, 12))
 
     local sidebarList = Instance.new("UIListLayout")
     sidebarList.Padding = UDim.new(0, 6)
@@ -147,14 +194,14 @@ function UI.Build(Hub)
     U.Padding(sidebar, 8)
 
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -170, 1, -66)
-    content.Position = UDim2.new(0, 160, 0, 56)
+    content.Size = UDim2.new(1, -170, 1, -70)
+    content.Position = UDim2.new(0, 160, 0, 60)
     content.BackgroundColor3 = T.Settings
     content.BackgroundTransparency = 0.15
     content.BorderSizePixel = 0
     content.ZIndex = 2
     content.Parent = main
-    U.Corner(content, UDim.new(0, 10))
+    U.Corner(content, UDim.new(0, 12))
 
     local contentScroll = Instance.new("ScrollingFrame")
     contentScroll.Size = UDim2.new(1, -16, 1, -16)
@@ -176,6 +223,7 @@ function UI.Build(Hub)
     local function fadeIn()
         main.BackgroundTransparency = 1
         header.BackgroundTransparency = 1
+        headerFix.BackgroundTransparency = 1
         sidebar.BackgroundTransparency = 1
         content.BackgroundTransparency = 1
         mainStroke.Transparency = 1
@@ -188,6 +236,7 @@ function UI.Build(Hub)
             BackgroundTransparency = 0,
         }):Play()
         TweenService:Create(header, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
+        TweenService:Create(headerFix, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
         TweenService:Create(sidebar, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
         TweenService:Create(content, TweenInfo.new(0.4), {BackgroundTransparency = 0.15}):Play()
         TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
@@ -206,7 +255,7 @@ function UI.Build(Hub)
         btn.ZIndex = 3
         btn.AutoButtonColor = false
         btn.Parent = sidebar
-        U.Corner(btn, T.CornerSmall)
+        U.Corner(btn, UDim.new(0, 8))
 
         local btnStroke = U.Stroke(btn, T.Accent, 0)
         btnStroke.Transparency = 1
@@ -297,7 +346,7 @@ function UI.Build(Hub)
         frame.ZIndex = 3
         frame.ClipsDescendants = true
         frame.Parent = contentScroll
-        U.Corner(frame, T.CornerSmall)
+        U.Corner(frame, UDim.new(0, 10))
 
         local head = Instance.new("Frame")
         head.Size = UDim2.new(1, 0, 0, 40)
@@ -348,7 +397,7 @@ function UI.Build(Hub)
         expand.ZIndex = 5
         expand.AutoButtonColor = false
         expand.Parent = head
-        U.Corner(expand, T.CornerSmall)
+        U.Corner(expand, UDim.new(0, 6))
 
         local bind = Instance.new("TextButton")
         bind.Size = UDim2.new(0, 26, 0, 26)
@@ -362,12 +411,18 @@ function UI.Build(Hub)
         bind.ZIndex = 5
         bind.AutoButtonColor = false
         bind.Parent = head
-        U.Corner(bind, T.CornerSmall)
+        U.Corner(bind, UDim.new(0, 6))
 
-        local settings = Instance.new("Frame")
+        local settings = Instance.new("ScrollingFrame")
         settings.Size = UDim2.new(1, -16, 0, 0)
         settings.Position = UDim2.new(0, 8, 0, 44)
         settings.BackgroundTransparency = 1
+        settings.BorderSizePixel = 0
+        settings.ScrollBarThickness = 4
+        settings.ScrollBarImageColor3 = T.Accent
+        settings.CanvasSize = UDim2.new(0, 0, 0, 0)
+        settings.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        settings.ScrollingDirection = Enum.ScrollingDirection.Y
         settings.ZIndex = 4
         settings.Parent = frame
 
@@ -388,6 +443,7 @@ function UI.Build(Hub)
             Elements = {},
             Enabled = false,
             Open = false,
+            Bind = nil,
         }
 
         local dotClick = Instance.new("TextButton")
@@ -442,20 +498,22 @@ function UI.Build(Hub)
 
             local targetHeight = 40
             if mod.Open then
-                targetHeight = 40 + 8 + #mod.Elements * 32 + 4
+                targetHeight = 40 + 8 + #mod.Elements * 32 + 8
             end
 
-            local info = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            TweenService:Create(frame, info, {Size = UDim2.new(1, -6, 0, targetHeight)}):Play()
+            TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Size = UDim2.new(1, -6, 0, targetHeight)
+            }):Play()
 
             if mod.Open then
                 settings.Visible = true
+                settings.Size = UDim2.new(1, -16, 0, targetHeight - 52)
                 for i, el in ipairs(mod.Elements) do
                     el.Frame.Visible = true
                     el.Frame.BackgroundTransparency = 1
                     local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 4)
-                    el.Frame.Position = UDim2.new(0, 0, 0, targetY + 10)
-                    TweenService:Create(el.Frame, TweenInfo.new(0.25 + i * 0.03, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    el.Frame.Position = UDim2.new(0, 0, 0, targetY + 12)
+                    TweenService:Create(el.Frame, TweenInfo.new(0.3 + i * 0.04, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                         BackgroundTransparency = 0,
                         Position = UDim2.new(0, 0, 0, targetY),
                     }):Play()
@@ -463,13 +521,13 @@ function UI.Build(Hub)
                 TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 180}):Play()
             else
                 for i, el in ipairs(mod.Elements) do
-                    local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 4) + 10
-                    TweenService:Create(el.Frame, TweenInfo.new(0.15), {
+                    local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 4) + 12
+                    TweenService:Create(el.Frame, TweenInfo.new(0.18), {
                         BackgroundTransparency = 1,
                         Position = UDim2.new(0, 0, 0, targetY),
                     }):Play()
                 end
-                task.delay(0.18, function()
+                task.delay(0.2, function()
                     settings.Visible = false
                     for _, el in ipairs(mod.Elements) do
                         el.Frame.Visible = false
@@ -489,15 +547,26 @@ function UI.Build(Hub)
         end)
 
         UserInputService.InputBegan:Connect(function(input, gpe)
-            if listeningBind and input.UserInputType == Enum.UserInputType.Keyboard then
+            if not listeningBind then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard then
                 bind.Text = input.KeyCode.Name
                 listeningBind = false
+                mod.Bind = input.KeyCode
                 pulse(bind)
                 TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
                 task.delay(0.4, function()
                     TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
                 end)
                 if mod.OnBind then mod.OnBind(input.KeyCode) end
+            elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+                bind.Text = "LMB"
+                listeningBind = false
+                mod.Bind = "LMB"
+                pulse(bind)
+                TweenService:Create(bind, TweenInfo.new(0.2), {BackgroundColor3 = T.Green}):Play()
+                task.delay(0.4, function()
+                    TweenService:Create(bind, TweenInfo.new(0.3), {BackgroundColor3 = T.Panel}):Play()
+                end)
             end
         end)
 
@@ -510,13 +579,13 @@ function UI.Build(Hub)
 
     local function makeToggle(module, text, default, callback)
         local row = Instance.new("Frame")
-        row.Size = UDim2.new(1, 0, 0, 28)
+        row.Size = UDim2.new(1, -8, 0, 28)
         row.BackgroundColor3 = T.Panel
         row.BorderSizePixel = 0
         row.LayoutOrder = #module.Elements + 1
         row.ZIndex = 5
         row.Parent = module.Settings
-        U.Corner(row, UDim.new(0, 6))
+        U.Corner(row, UDim.new(0, 8))
 
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, -50, 1, 0)
@@ -578,13 +647,13 @@ function UI.Build(Hub)
 
     local function makeSlider(module, text, min, max, default, callback)
         local row = Instance.new("Frame")
-        row.Size = UDim2.new(1, 0, 0, 44)
+        row.Size = UDim2.new(1, -8, 0, 44)
         row.BackgroundColor3 = T.Panel
         row.BorderSizePixel = 0
         row.LayoutOrder = #module.Elements + 1
         row.ZIndex = 5
         row.Parent = module.Settings
-        U.Corner(row, UDim.new(0, 6))
+        U.Corner(row, UDim.new(0, 8))
 
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0, 150, 0, 18)
@@ -757,9 +826,9 @@ function UI.Build(Hub)
 
     minBtn.MouseButton1Click:Connect(function()
         pulse(minBtn)
-        if main.Size.Y.Offset > 46 then
+        if main.Size.Y.Offset > 48 then
             TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 620, 0, 46)
+                Size = UDim2.new(0, 620, 0, 48)
             }):Play()
         else
             TweenService:Create(main, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
