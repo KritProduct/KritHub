@@ -124,6 +124,19 @@ function UI.Build(Hub)
         if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideScreenshot = v end
     end)
 
+    local afMod = Module.Create(Hub, W, visualsTab, "Anti Flash")
+    afMod.OnToggle = function(v)
+        if Hub.Features.AntiFlash then
+            if v then Hub.Features.AntiFlash.Enable() else Hub.Features.AntiFlash.Disable() end
+        end
+    end
+    Toggle(Hub, W, afMod, "Hide Overlay", true, function(v)
+        if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideOverlay = v end
+    end)
+    Toggle(Hub, W, afMod, "Hide Screenshot", true, function(v)
+        if Hub.Features.AntiFlash then Hub.Features.AntiFlash.HideScreenshot = v end
+    end)
+
     combatTab.Select(false)
     for _, m in pairs(visualsTab.Modules) do
         m.Frame.Visible = false
