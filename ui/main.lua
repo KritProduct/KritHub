@@ -195,6 +195,15 @@ function UI.Build(Hub)
         if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
     end)
 
+    local spacer = Instance.new("Frame")
+    spacer.Name = "ScrollSpacer"
+    spacer.Size = UDim2.new(1, -6, 0, 60)
+    spacer.BackgroundTransparency = 1
+    spacer.BorderSizePixel = 0
+    spacer.LayoutOrder = 999999
+    spacer.ZIndex = 3
+    spacer.Parent = W.ContentScroll
+
     combatTab.Select(false)
     for _, m in pairs(visualsTab.Modules) do
         m.Frame.Visible = false
