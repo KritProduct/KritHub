@@ -67,8 +67,8 @@ Hub.UI.Elements = {
     Dropdown = load("ui/elements/dropdown.lua"),
     Button = load("ui/elements/button.lua"),
 }
-Hub.UI.Main = load("ui/main.lua")
 Hub.UI.ConfigWindow = load("ui/configwindow.lua")
+Hub.UI.Main = load("ui/main.lua")
 
 if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
 
