@@ -57,17 +57,17 @@ function UI.Build(Hub)
     Toggle(Hub, W, trig, "Shoot Teammates", false, function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.Teammates = v end
     end)
-    Toggle(Hub, W, trig, "Ignore Walls", false, function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.WallCheck = not v end
+    Toggle(Hub, W, trig, "Ignore Walls", true, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.IgnoreWalls = v end
     end)
-    Dropdown(Hub, W, trig, "Mouse Button", {"LMB", "RMB"}, "RMB", function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.MouseButton = v end
+    Dropdown(Hub, W, trig, "Target Mode", {"Head", "Torso", "Both"}, "Head", function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetMode = v end
     end)
-    Dropdown(Hub, W, trig, "Target Part", {"Head", "Torso", "Legs"}, "Head", function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetPart = v end
+    Slider(Hub, W, trig, "Aim Radius (px)", 5, 100, 30, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.PixelThreshold = v end
     end)
-    Slider(Hub, W, trig, "Shot Delay (ms)", 0, 500, 50, function(v)
-        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.Delay = v end
+    Slider(Hub, W, trig, "Shot Delay (ms)", 0, 500, 100, function(v)
+        if Hub.Features.TriggerBot then Hub.Features.TriggerBot.ShotDelay = v end
     end)
 
     local visualsTab = TabsM.Create("Visuals")
