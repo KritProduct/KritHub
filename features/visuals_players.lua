@@ -132,8 +132,11 @@ return function(Hub)
             return
         end
 
+        local validChars = {}
+
         for _, ch in ipairs(folder:GetChildren()) do
             if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
+                validChars[ch] = true
                 local isFriend = false
                 if myTeam then
                     local t = GetTeam(ch)
@@ -149,7 +152,11 @@ return function(Hub)
                 h.OutlineTransparency = Visuals.ChamsOutlineTransparency
                 h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
                 h.Enabled = true
-            else
+            end
+        end
+
+        for ch, _ in pairs(chamsCache) do
+            if not validChars[ch] or not ch.Parent then
                 RemoveHighlight(ch)
             end
         end
@@ -168,8 +175,11 @@ return function(Hub)
             return
         end
 
+        local validChars = {}
+
         for _, ch in ipairs(folder:GetChildren()) do
             if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
+                validChars[ch] = true
                 local data = skeletonCache[ch]
                 if not data then data = CreateSkeleton(ch) end
 
@@ -213,7 +223,11 @@ return function(Hub)
                         line.Visible = false
                     end
                 end
-            else
+            end
+        end
+
+        for ch, data in pairs(skeletonCache) do
+            if not validChars[ch] or not ch.Parent then
                 RemoveSkeleton(ch)
             end
         end
@@ -225,9 +239,20 @@ return function(Hub)
     end)
 
     function Visuals.EnableChams() Visuals.ChamsEnabled = true end
-    function Visuals.DisableChams() Visuals.ChamsEnabled = false end
+    function Visuals.DisableChams()
+        Visuals.ChamsEnabled = false
+        for ch, _ in pairs(chamsCache) do
+            RemoveHighlight(ch)
+        end
+    end
+
     function Visuals.EnableSkeleton() Visuals.SkeletonEnabled = true end
-    function Visuals.DisableSkeleton() Visuals.SkeletonEnabled = false end
+    function Visuals.DisableSkeleton()
+        Visuals.SkeletonEnabled = false
+        for ch, _ in pairs(skeletonCache) do
+            RemoveSkeleton(ch)
+        end
+    end
 
     return Visuals
 end
