@@ -1,5 +1,7 @@
 local Module = {}
 
+local AllModules = {}
+
 function Module.Create(Hub, W, tab, name)
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
@@ -230,7 +232,6 @@ function Module.Create(Hub, W, tab, name)
                 bind.BackgroundColor3 = T.Panel
             end
         end)
-        if mod.OnBind then mod.OnBind(keyCode) end
     end
 
     local function cancelListening()
@@ -248,27 +249,43 @@ function Module.Create(Hub, W, tab, name)
     end)
 
     UserInputService.InputBegan:Connect(function(input, gpe)
-        if not mod.Listening then return end
-
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            if input.KeyCode == Enum.KeyCode.Unknown then return end
-            if input.KeyCode == Enum.KeyCode.Escape then
-                cancelListening()
-                return
-            end
-            stopListening(input.KeyCode.Name, input.KeyCode)
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if bind:IsA("TextButton") then
+        if mod.Listening then
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                if input.KeyCode == Enum.KeyCode.Unknown then return end
+                if input.KeyCode == Enum.KeyCode.Escape then
+                    cancelListening()
+                    return
+                end
+                stopListening(input.KeyCode.Name, input.KeyCode)
+            elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local m = UserInputService:GetMouseLocation()
                 local abs = bind.AbsolutePosition
                 local absSize = bind.AbsoluteSize
                 if m.X >= abs.X and m.X <= abs.X + absSize.X and m.Y >= abs.Y and m.Y <= abs.Y + absSize.Y then
                     return
                 end
+                stopListening("LMB", "LMB")
+            elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                stopListening("RMB", "RMB")
             end
-            stopListening("LMB", "LMB")
-        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-            stopListening("RMB", "RMB")
+            return
+        end
+
+        if mod.Bind == nil then return end
+        if gpe then return end
+
+        if typeof(mod.Bind) == "EnumItem" then
+            if input.KeyCode == mod.Bind then
+                setEnabled(not mod.Enabled)
+            end
+        elseif mod.Bind == "LMB" then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                setEnabled(not mod.Enabled)
+            end
+        elseif mod.Bind == "RMB" then
+            if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                setEnabled(not mod.Enabled)
+            end
         end
     end)
 
