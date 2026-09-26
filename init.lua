@@ -6,8 +6,11 @@ local function load(path)
         return game:HttpGet(url)
     end)
     if not ok or not res or res == "" then
-        warn("[KritHub] failed to fetch: " .. url)
+        warn("[KritHub] fetch failed: " .. url)
         return nil
+    end
+    if string.byte(res, 1) == 239 then
+        res = string.sub(res, 4)
     end
     local fn, err = loadstring(res)
     if not fn then
