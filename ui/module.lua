@@ -222,6 +222,10 @@ function Module.Create(Hub, W, tab, name)
             TweenService:Create(expand, TweenInfo.new(0.3), {Rotation = 0}):Play()
         end
         expand.Text = mod.Open and "^" or "v"
+
+        task.delay(0.45, function()
+            if W.RecalcCanvas then W.RecalcCanvas() end
+        end)
     end)
 
     local function startListening()
@@ -242,6 +246,10 @@ function Module.Create(Hub, W, tab, name)
         mod.Bind = nil
         bind.Text = "+"
         bind.BackgroundColor3 = T.Panel
+    end
+
+    function mod.SetBindDisplay(keyName)
+        bind.Text = keyName
     end
 
     bind.MouseButton1Click:Connect(function()
