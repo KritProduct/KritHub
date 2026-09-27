@@ -4,7 +4,6 @@ function Window.Create(Hub)
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
-    local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
     local T = Hub.Theme
     local U = Hub.Utils
@@ -246,21 +245,10 @@ function Window.Create(Hub)
             total = total + padding * (count - 1)
         end
 
-        local minHeight = scroll.AbsoluteSize.Y + 100
-        local final = total + 80
-        if final < minHeight then final = minHeight end
+        total = total + padding * 2
 
-        scroll.CanvasSize = UDim2.new(0, 0, 0, final)
+        scroll.CanvasSize = UDim2.new(0, 0, 0, total)
     end
-
-    task.spawn(function()
-        while W.Gui and W.Gui.Parent do
-            task.wait(0.1)
-            if W.Gui.Enabled then
-                pcall(W.RecalcCanvas)
-            end
-        end
-    end)
 
     function W.FadeIn()
         W.Main.BackgroundTransparency = 1
