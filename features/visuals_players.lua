@@ -44,27 +44,36 @@ return function(Hub)
         return GetTeam(me)
     end
 
-    local function CreateHighlight(ch)
-        local existing = ch:FindFirstChild("KritChams")
-        if existing then return existing end
+    local function EnsureHighlight(ch)
+        local h = chamsCache[ch]
 
-        local h = Instance.new("Highlight")
-        h.Name = "KritChams"
-        h.FillColor = Visuals.ChamsColorEnemy
-        h.FillTransparency = Visuals.ChamsFillTransparency
-        h.OutlineColor = Visuals.ChamsColorEnemy
-        h.OutlineTransparency = Visuals.ChamsOutlineTransparency
-        h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
-        h.Adornee = ch
-        h.Parent = ch
+        if h and h.Parent ~= ch then
+            pcall(function() h:Destroy() end)
+            h = nil
+            chamsCache[ch] = nil
+        end
 
-        chamsCache[ch] = h
+        if not h then
+            h = Instance.new("Highlight")
+            h.Name = "KritChams"
+            h.FillColor = Visuals.ChamsColorEnemy
+            h.FillTransparency = Visuals.ChamsFillTransparency
+            h.OutlineColor = Visuals.ChamsColorEnemy
+            h.OutlineTransparency = Visuals.ChamsOutlineTransparency
+            h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+            h.Adornee = ch
+            h.Parent = ch
+            chamsCache[ch] = h
+        end
+
         return h
     end
 
     local function RemoveHighlight(ch)
-        local h = ch:FindFirstChild("KritChams")
-        if h then h:Destroy() end
+        local h = chamsCache[ch]
+        if h then
+            pcall(function() h:Destroy() end)
+        end
         chamsCache[ch] = nil
     end
 
@@ -94,9 +103,9 @@ return function(Hub)
     }
 
     local function CreateSkeleton(ch)
-        local lines = {}
         local isR15 = ch:FindFirstChild("UpperTorso") ~= nil
         local pairs_ = isR15 and SKELETON_CONNECTIONS or SKELETON_CONNECTIONS_R6
+        local lines = {}
 
         for i = 1, #pairs_ do
             local line = Drawing.new("Line")
@@ -114,7 +123,9 @@ return function(Hub)
     local function RemoveSkeleton(ch)
         local data = skeletonCache[ch]
         if not data then return end
-        for _, l in ipairs(data.Lines) do l:Remove() end
+        for _, l in ipairs(data.Lines) do
+            pcall(function() l:Remove() end)
+        end
         skeletonCache[ch] = nil
     end
 
@@ -123,7 +134,6 @@ return function(Hub)
         if not folder then return end
 
         local myChar = LocalPlayer.Character
-        local myTeam = GetMyTeam()
 
         if not Visuals.ChamsEnabled then
             for ch, _ in pairs(chamsCache) do
@@ -132,11 +142,13 @@ return function(Hub)
             return
         end
 
+        local myTeam = GetMyTeam()
         local validChars = {}
 
         for _, ch in ipairs(folder:GetChildren()) do
             if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
                 validChars[ch] = true
+
                 local isFriend = false
                 if myTeam then
                     local t = GetTeam(ch)
@@ -144,14 +156,22 @@ return function(Hub)
                 end
 
                 local color = isFriend and Visuals.ChamsColorFriend or Visuals.ChamsColorEnemy
-                local h = CreateHighlight(ch)
 
-                h.FillColor = color
-                h.OutlineColor = color
-                h.FillTransparency = Visuals.ChamsFillTransparency
-                h.OutlineTransparency = Visuals.ChamsOutlineTransparency
-                h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
-                h.Enabled = true
+                local ok, err = pcall(function()
+                    local h = EnsureHighlight(ch)
+                    if h.FillColor ~= color then h.FillColor = color end
+                    if h.OutlineColor ~= color then h.OutlineColor = color end
+                    if h.FillTransparency ~= Visuals.ChamsFillTransparency then
+                        h.FillTransparency = Visuals.ChamsFillTransparency
+                    end
+                    if h.OutlineTransparency ~= Visuals.ChamsOutlineTransparency then
+                        h.OutlineTransparency = Visuals.ChamsOutlineTransparency
+                    end
+                    local targetDepth = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+                    if h.DepthMode ~= targetDepth then h.DepthMode = targetDepth end
+                    if h.Adornee ~= ch then h.Adornee = ch end
+                    if not h.Enabled then h.Enabled = true end
+                end)
             end
         end
 
@@ -180,37 +200,44 @@ return function(Hub)
         for _, ch in ipairs(folder:GetChildren()) do
             if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
                 validChars[ch] = true
+
                 local data = skeletonCache[ch]
                 if not data then data = CreateSkeleton(ch) end
 
-                local allOnScreen = true
-                local screenPoints = {}
-
+                local allValid = true
                 for _, pair in ipairs(data.Pairs) do
+                    if not ch:FindFirstChild(pair[1]) or not ch:FindFirstChild(pair[2]) then
+                        allValid = false
+                        break
+                    end
+                end
+
+                if not allValid then
+                    RemoveSkeleton(ch)
+                    data = CreateSkeleton(ch)
+                end
+
+                local anyOnScreen = false
+                local projected = {}
+
+                for i, pair in ipairs(data.Pairs) do
                     local p1 = ch:FindFirstChild(pair[1])
                     local p2 = ch:FindFirstChild(pair[2])
                     if p1 and p2 then
                         local s1, o1 = Camera:WorldToViewportPoint(p1.Position)
                         local s2, o2 = Camera:WorldToViewportPoint(p2.Position)
-                        screenPoints[#screenPoints + 1] = { Vector2.new(s1.X, s1.Y), o1 }
-                        screenPoints[#screenPoints + 1] = { Vector2.new(s2.X, s2.Y), o2 }
+                        projected[i] = { s1, o1, s2, o2 }
+                        if o1 or o2 then anyOnScreen = true end
                     end
                 end
 
-                local visible = true
-                if not Visuals.SkeletonThroughWalls then
-                    for _, sp in ipairs(screenPoints) do
-                        if not sp[2] then visible = false break end
-                    end
-                end
+                local visible = Visuals.SkeletonThroughWalls or anyOnScreen
 
                 for i, pair in ipairs(data.Pairs) do
                     local line = data.Lines[i]
-                    local p1 = ch:FindFirstChild(pair[1])
-                    local p2 = ch:FindFirstChild(pair[2])
-                    if p1 and p2 and visible then
-                        local s1, o1 = Camera:WorldToViewportPoint(p1.Position)
-                        local s2, o2 = Camera:WorldToViewportPoint(p2.Position)
+                    local pr = projected[i]
+                    if pr and visible then
+                        local s1, o1, s2, o2 = pr[1], pr[2], pr[3], pr[4]
                         if o1 and o2 then
                             line.From = Vector2.new(s1.X, s1.Y)
                             line.To = Vector2.new(s2.X, s2.Y)
@@ -220,7 +247,7 @@ return function(Hub)
                             line.Visible = false
                         end
                     else
-                        line.Visible = false
+                        if line then line.Visible = false end
                     end
                 end
             end
@@ -235,6 +262,9 @@ return function(Hub)
 
     RunService.RenderStepped:Connect(function()
         pcall(UpdateChams)
+    end)
+
+    RunService.RenderStepped:Connect(function()
         pcall(UpdateSkeleton)
     end)
 
