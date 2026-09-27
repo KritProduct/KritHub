@@ -18,6 +18,8 @@ return function(Hub)
 
     local chamsCache = {}
     local skeletonCache = {}
+    local lastChamsRebuild = 0
+    local CHAMS_REBUILD_INTERVAL = 1.0
 
     local function GetFolder()
         return workspace:FindFirstChild("Characters")
@@ -44,37 +46,68 @@ return function(Hub)
         return GetTeam(me)
     end
 
-    local function EnsureHighlight(ch)
-        local h = chamsCache[ch]
-
-        if h and (h.Parent ~= ch or h.Parent == nil) then
-            pcall(function() h:Destroy() end)
-            h = nil
-            chamsCache[ch] = nil
-        end
-
-        if not h then
-            h = Instance.new("Highlight")
-            h.Name = "KritChams"
-            h.FillColor = Visuals.ChamsColorEnemy
-            h.FillTransparency = Visuals.ChamsFillTransparency
-            h.OutlineColor = Visuals.ChamsColorEnemy
-            h.OutlineTransparency = Visuals.ChamsOutlineTransparency
-            h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
-            h.Adornee = ch
-            h.Parent = ch
-            chamsCache[ch] = h
-        end
-
-        return h
-    end
-
-    local function RemoveHighlight(ch)
+    local function DestroyHighlight(ch)
         local h = chamsCache[ch]
         if h then
             pcall(function() h:Destroy() end)
         end
         chamsCache[ch] = nil
+    end
+
+    local function CreateHighlight(ch, color)
+        local h = Instance.new("Highlight")
+        h.Name = "KritChams"
+        h.FillColor = color
+        h.FillTransparency = Visuals.ChamsFillTransparency
+        h.OutlineColor = color
+        h.OutlineTransparency = Visuals.ChamsOutlineTransparency
+        h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+        h.Adornee = ch
+        h.Parent = ch
+        chamsCache[ch] = h
+        return h
+    end
+
+    local function RebuildAllChams()
+        local folder = GetFolder()
+        if not folder then return end
+
+        local myChar = LocalPlayer.Character
+        local myTeam = GetMyTeam()
+
+        local validChars = {}
+
+        for _, ch in ipairs(folder:GetChildren()) do
+            if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
+                validChars[ch] = true
+
+                local isFriend = false
+                if myTeam then
+                    local t = GetTeam(ch)
+                    if t == myTeam then isFriend = true end
+                end
+
+                local color = isFriend and Visuals.ChamsColorFriend or Visuals.ChamsColorEnemy
+
+                DestroyHighlight(ch)
+
+                local ok = pcall(function()
+                    CreateHighlight(ch, color)
+                end)
+            end
+        end
+
+        for ch, _ in pairs(chamsCache) do
+            if not validChars[ch] or not ch.Parent then
+                DestroyHighlight(ch)
+            end
+        end
+    end
+
+    local function ClearAllChams()
+        for ch, _ in pairs(chamsCache) do
+            DestroyHighlight(ch)
+        end
     end
 
     local SKELETON_CONNECTIONS = {
@@ -129,65 +162,6 @@ return function(Hub)
         skeletonCache[ch] = nil
     end
 
-    local function UpdateChams()
-        local folder = GetFolder()
-        if not folder then return end
-
-        local myChar = LocalPlayer.Character
-
-        if not Visuals.ChamsEnabled then
-            for ch, _ in pairs(chamsCache) do
-                RemoveHighlight(ch)
-            end
-            return
-        end
-
-        local myTeam = GetMyTeam()
-        local validChars = {}
-
-        for _, ch in ipairs(folder:GetChildren()) do
-            if ch:IsA("Model") and ch ~= myChar then
-                validChars[ch] = true
-
-                local alive = IsAlive(ch)
-
-                local isFriend = false
-                if myTeam then
-                    local t = GetTeam(ch)
-                    if t == myTeam then isFriend = true end
-                end
-
-                local color = isFriend and Visuals.ChamsColorFriend or Visuals.ChamsColorEnemy
-
-                local ok = pcall(function()
-                    local h = EnsureHighlight(ch)
-                    if not alive then
-                        h.Enabled = false
-                        return
-                    end
-                    if h.FillColor ~= color then h.FillColor = color end
-                    if h.OutlineColor ~= color then h.OutlineColor = color end
-                    if h.FillTransparency ~= Visuals.ChamsFillTransparency then
-                        h.FillTransparency = Visuals.ChamsFillTransparency
-                    end
-                    if h.OutlineTransparency ~= Visuals.ChamsOutlineTransparency then
-                        h.OutlineTransparency = Visuals.ChamsOutlineTransparency
-                    end
-                    local targetDepth = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
-                    if h.DepthMode ~= targetDepth then h.DepthMode = targetDepth end
-                    if h.Adornee ~= ch then h.Adornee = ch end
-                    if not h.Enabled then h.Enabled = true end
-                end)
-            end
-        end
-
-        for ch, _ in pairs(chamsCache) do
-            if not validChars[ch] or not ch.Parent then
-                RemoveHighlight(ch)
-            end
-        end
-    end
-
     local function UpdateSkeleton()
         local folder = GetFolder()
         if not folder then return end
@@ -208,14 +182,11 @@ return function(Hub)
                 validChars[ch] = true
 
                 local alive = IsAlive(ch)
-
                 local data = skeletonCache[ch]
 
                 if not alive then
                     if data then
-                        for _, l in ipairs(data.Lines) do
-                            l.Visible = false
-                        end
+                        for _, l in ipairs(data.Lines) do l.Visible = false end
                     end
                 else
                     local isR15 = ch:FindFirstChild("UpperTorso") ~= nil
@@ -270,26 +241,43 @@ return function(Hub)
     end
 
     RunService.RenderStepped:Connect(function()
-        pcall(UpdateChams)
+        if Visuals.ChamsEnabled then
+            local now = tick()
+            if now - lastChamsRebuild >= CHAMS_REBUILD_INTERVAL then
+                lastChamsRebuild = now
+                pcall(RebuildAllChams)
+            end
+        end
     end)
 
     RunService.RenderStepped:Connect(function()
         pcall(UpdateSkeleton)
     end)
 
-    function Visuals.EnableChams() Visuals.ChamsEnabled = true end
+    function Visuals.EnableChams()
+        Visuals.ChamsEnabled = true
+        lastChamsRebuild = 0
+        pcall(RebuildAllChams)
+    end
+
     function Visuals.DisableChams()
         Visuals.ChamsEnabled = false
-        for ch, _ in pairs(chamsCache) do
-            RemoveHighlight(ch)
-        end
+        ClearAllChams()
     end
 
     function Visuals.EnableSkeleton() Visuals.SkeletonEnabled = true end
+
     function Visuals.DisableSkeleton()
         Visuals.SkeletonEnabled = false
         for ch, _ in pairs(skeletonCache) do
             RemoveSkeleton(ch)
+        end
+    end
+
+    function Visuals.RebuildChams()
+        if Visuals.ChamsEnabled then
+            lastChamsRebuild = 0
+            pcall(RebuildAllChams)
         end
     end
 
