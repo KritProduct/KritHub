@@ -70,7 +70,9 @@ Hub.UI.Elements = {
 Hub.UI.ConfigWindow = load("ui/configwindow.lua")
 Hub.UI.Main = load("ui/main.lua")
 
-if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
+_G.KritHub = Hub
+
+    if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
 
 print("[KritHub] loaded")
 return Hub
