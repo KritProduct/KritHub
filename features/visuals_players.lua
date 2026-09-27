@@ -47,7 +47,7 @@ return function(Hub)
     local function EnsureHighlight(ch)
         local h = chamsCache[ch]
 
-        if h and h.Parent ~= ch then
+        if h and (h.Parent ~= ch or h.Parent == nil) then
             pcall(function() h:Destroy() end)
             h = nil
             chamsCache[ch] = nil
@@ -116,7 +116,7 @@ return function(Hub)
             table.insert(lines, line)
         end
 
-        skeletonCache[ch] = { Lines = lines, Pairs = pairs_ }
+        skeletonCache[ch] = { Lines = lines, Pairs = pairs_, IsR15 = isR15 }
         return skeletonCache[ch]
     end
 
@@ -146,8 +146,10 @@ return function(Hub)
         local validChars = {}
 
         for _, ch in ipairs(folder:GetChildren()) do
-            if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
+            if ch:IsA("Model") and ch ~= myChar then
                 validChars[ch] = true
+
+                local alive = IsAlive(ch)
 
                 local isFriend = false
                 if myTeam then
@@ -157,8 +159,12 @@ return function(Hub)
 
                 local color = isFriend and Visuals.ChamsColorFriend or Visuals.ChamsColorEnemy
 
-                local ok, err = pcall(function()
+                local ok = pcall(function()
                     local h = EnsureHighlight(ch)
+                    if not alive then
+                        h.Enabled = false
+                        return
+                    end
                     if h.FillColor ~= color then h.FillColor = color end
                     if h.OutlineColor ~= color then h.OutlineColor = color end
                     if h.FillTransparency ~= Visuals.ChamsFillTransparency then
@@ -198,56 +204,59 @@ return function(Hub)
         local validChars = {}
 
         for _, ch in ipairs(folder:GetChildren()) do
-            if ch:IsA("Model") and ch ~= myChar and IsAlive(ch) then
+            if ch:IsA("Model") and ch ~= myChar then
                 validChars[ch] = true
 
+                local alive = IsAlive(ch)
+
                 local data = skeletonCache[ch]
-                if not data then data = CreateSkeleton(ch) end
 
-                local allValid = true
-                for _, pair in ipairs(data.Pairs) do
-                    if not ch:FindFirstChild(pair[1]) or not ch:FindFirstChild(pair[2]) then
-                        allValid = false
-                        break
-                    end
-                end
-
-                if not allValid then
-                    RemoveSkeleton(ch)
-                    data = CreateSkeleton(ch)
-                end
-
-                local anyOnScreen = false
-                local projected = {}
-
-                for i, pair in ipairs(data.Pairs) do
-                    local p1 = ch:FindFirstChild(pair[1])
-                    local p2 = ch:FindFirstChild(pair[2])
-                    if p1 and p2 then
-                        local s1, o1 = Camera:WorldToViewportPoint(p1.Position)
-                        local s2, o2 = Camera:WorldToViewportPoint(p2.Position)
-                        projected[i] = { s1, o1, s2, o2 }
-                        if o1 or o2 then anyOnScreen = true end
-                    end
-                end
-
-                local visible = Visuals.SkeletonThroughWalls or anyOnScreen
-
-                for i, pair in ipairs(data.Pairs) do
-                    local line = data.Lines[i]
-                    local pr = projected[i]
-                    if pr and visible then
-                        local s1, o1, s2, o2 = pr[1], pr[2], pr[3], pr[4]
-                        if o1 and o2 then
-                            line.From = Vector2.new(s1.X, s1.Y)
-                            line.To = Vector2.new(s2.X, s2.Y)
-                            line.Color = Visuals.SkeletonColor
-                            line.Visible = true
-                        else
-                            line.Visible = false
+                if not alive then
+                    if data then
+                        for _, l in ipairs(data.Lines) do
+                            l.Visible = false
                         end
-                    else
-                        if line then line.Visible = false end
+                    end
+                else
+                    local isR15 = ch:FindFirstChild("UpperTorso") ~= nil
+
+                    if not data or data.IsR15 ~= isR15 then
+                        if data then RemoveSkeleton(ch) end
+                        data = CreateSkeleton(ch)
+                    end
+
+                    local anyOnScreen = false
+                    local projected = {}
+
+                    for i, pair in ipairs(data.Pairs) do
+                        local p1 = ch:FindFirstChild(pair[1])
+                        local p2 = ch:FindFirstChild(pair[2])
+                        if p1 and p2 then
+                            local s1, o1 = Camera:WorldToViewportPoint(p1.Position)
+                            local s2, o2 = Camera:WorldToViewportPoint(p2.Position)
+                            projected[i] = { s1, o1, s2, o2 }
+                            if o1 or o2 then anyOnScreen = true end
+                        end
+                    end
+
+                    local visible = Visuals.SkeletonThroughWalls or anyOnScreen
+
+                    for i, pair in ipairs(data.Pairs) do
+                        local line = data.Lines[i]
+                        local pr = projected[i]
+                        if pr and visible then
+                            local s1, o1, s2, o2 = pr[1], pr[2], pr[3], pr[4]
+                            if o1 and o2 then
+                                line.From = Vector2.new(s1.X, s1.Y)
+                                line.To = Vector2.new(s2.X, s2.Y)
+                                line.Color = Visuals.SkeletonColor
+                                line.Visible = true
+                            else
+                                line.Visible = false
+                            end
+                        else
+                            if line then line.Visible = false end
+                        end
                     end
                 end
             end
