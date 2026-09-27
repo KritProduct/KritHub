@@ -9,7 +9,6 @@ return function(Hub)
     SkinChanger.SelectedCondition = "Factory New"
     SkinChanger.OriginalSkins = {}
 
-    local autoApplyConn = nil
     local camConn = nil
 
     local function GetSkinsFolder()
@@ -89,8 +88,7 @@ return function(Hub)
         if not view then return nil end
         local cond = view:FindFirstChild(condition)
         if not cond then
-            local first = view:GetChildren()[1]
-            return first
+            return view:GetChildren()[1]
         end
         return cond
     end
@@ -117,29 +115,46 @@ return function(Hub)
     end
 
     function SkinChanger.Apply(weaponName, skinName, condition)
-        if not weaponName or not skinName then return false end
+        if not weaponName or not skinName then
+            print("[SkinChanger] missing weapon or skin name")
+            return false
+        end
 
         local weaponModel = SkinChanger.GetCurrentWeaponModel()
-        if not weaponModel then return false end
+        if not weaponModel then
+            print("[SkinChanger] no weapon in workspace.Camera")
+            return false
+        end
+
+        print("[SkinChanger] current weapon model:", weaponModel.Name, "| requested:", weaponName)
 
         if weaponModel.Name ~= weaponName then
+            print("[SkinChanger] weapon mismatch: in hands=" .. weaponModel.Name .. ", requested=" .. weaponName)
             return false
         end
 
         local skinData = SkinChanger.GetSkinModel(weaponName, skinName, condition or "Factory New")
         if not skinData then
-            print("[KritHub] skin not found:", weaponName, skinName, condition)
+            print("[SkinChanger] skin model not found:", weaponName, skinName, condition)
             return false
         end
 
         SaveOriginal(weaponModel)
 
         local weaponFolder = weaponModel:FindFirstChild("Weapon")
-        if not weaponFolder then return false end
+        if not weaponFolder then
+            print("[SkinChanger] no Weapon folder")
+            return false
+        end
+
         local inner = weaponFolder:FindFirstChildOfClass("Model")
-        if not inner then return false end
+        if not inner then
+            print("[SkinChanger] no inner model")
+            return false
+        end
 
         local appliedCount = 0
+        local missing = {}
 
         for _, part in ipairs(inner:GetDescendants()) do
             if part:IsA("SurfaceAppearance") then
@@ -147,24 +162,32 @@ return function(Hub)
                 if skinPart then
                     local skinSA = skinPart:FindFirstChildOfClass("SurfaceAppearance")
                     if skinSA then
-                        pcall(function()
+                        local ok = pcall(function()
                             part.ColorMap = skinSA.ColorMap
                             part.NormalMap = skinSA.NormalMap
                             part.RoughnessMap = skinSA.RoughnessMap
                             part.MetalnessMap = skinSA.MetalnessMap
                         end)
-                        appliedCount = appliedCount + 1
+                        if ok then
+                            appliedCount = appliedCount + 1
+                        end
                     end
+                else
+                    table.insert(missing, part.Name)
                 end
             end
+        end
+
+        print("[SkinChanger] applied to " .. appliedCount .. " parts")
+        if #missing > 0 then
+            print("[SkinChanger] missing parts in skin:", table.concat(missing, ", "))
         end
 
         SkinChanger.SelectedWeapon = weaponName
         SkinChanger.SelectedSkin = skinName
         SkinChanger.SelectedCondition = condition or "Factory New"
 
-        print("[KritHub] Skin applied:", weaponName, skinName, "(" .. appliedCount .. " parts)")
-        return true
+        return appliedCount > 0
     end
 
     function SkinChanger.Reset()
@@ -186,39 +209,11 @@ return function(Hub)
         end
 
         SkinChanger.OriginalSkins[weaponModel] = nil
-        print("[KritHub] Skin reset")
-    end
-
-    function SkinChanger.TryAutoApply()
-        if not SkinChanger.AutoApply then return end
-        if not SkinChanger.SelectedSkin then return end
-        local currentWeapon = SkinChanger.GetCurrentWeaponName()
-        if currentWeapon == SkinChanger.SelectedWeapon then
-            SkinChanger.Apply(SkinChanger.SelectedWeapon, SkinChanger.SelectedSkin, SkinChanger.SelectedCondition)
-        end
+        print("[SkinChanger] reset")
     end
 
     function SkinChanger.Enable()
         SkinChanger.Enabled = true
-
-        if not camConn then
-            camConn = workspace.ChildAdded:Connect(function(child)
-                if child.Name == "Camera" then
-                    task.wait(0.3)
-                    SkinChanger.TryAutoApply()
-                end
-            end)
-        end
-
-        local cam = workspace:FindFirstChild("Camera")
-        if cam then
-            cam.ChildAdded:Connect(function(child)
-                if child:IsA("Model") then
-                    task.wait(0.3)
-                    SkinChanger.TryAutoApply()
-                end
-            end)
-        end
     end
 
     function SkinChanger.Disable()
