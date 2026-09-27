@@ -21,8 +21,11 @@ function SkinChangerUI.Build(Hub, W, tab)
     parent.LayoutOrder = 1
     parent.ClipsDescendants = true
     parent.ZIndex = 3
+    parent.Visible = false
     parent.Parent = W.ContentScroll
     U.Corner(parent, UDim.new(0, 10))
+
+    UI.Root = parent
 
     local viewportFrame = Instance.new("ViewportFrame")
     viewportFrame.Size = UDim2.new(1, 0, 0, 220)
@@ -300,24 +303,35 @@ function SkinChangerUI.Build(Hub, W, tab)
     end)
 
     leftArrow.MouseEnter:Connect(function()
-        TweenService:Create(leftArrow, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent, BackgroundTransparency = 0}):Play()
+        TweenService:Create(leftArrow, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
     end)
     leftArrow.MouseLeave:Connect(function()
-        TweenService:Create(leftArrow, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.2}):Play()
+        TweenService:Create(leftArrow, TweenInfo.new(0.15), {BackgroundTransparency = 0.2}):Play()
     end)
     rightArrow.MouseEnter:Connect(function()
-        TweenService:Create(rightArrow, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent, BackgroundTransparency = 0}):Play()
+        TweenService:Create(rightArrow, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
     end)
     rightArrow.MouseLeave:Connect(function()
-        TweenService:Create(rightArrow, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.2}):Play()
+        TweenService:Create(rightArrow, TweenInfo.new(0.15), {BackgroundTransparency = 0.2}):Play()
     end)
 
     UI.UpdateWeaponList = updateWeaponList
     UI.RefreshSkins = refreshSkins
 
-    task.delay(0.2, function()
-        updateWeaponList()
-    end)
+    function UI.SetVisible(v)
+        parent.Visible = v
+        if v then
+            task.delay(0.1, updateWeaponList)
+        end
+    end
+
+    function UI.Show()
+        parent.Visible = true
+    end
+
+    function UI.Hide()
+        parent.Visible = false
+    end
 
     return UI
 end
