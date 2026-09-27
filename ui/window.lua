@@ -229,18 +229,20 @@ function Window.Create(Hub)
         local scroll = W.ContentScroll
         if not scroll then return end
 
+        local scrollTopAbs = scroll.AbsolutePosition.Y
         local maxY = 0
+
         for _, child in ipairs(scroll:GetChildren()) do
             if child:IsA("GuiObject") and child.Visible then
-                local bottom = child.Position.Y.Offset + child.Size.Y.Offset
-                if bottom > maxY then maxY = bottom end
+                local bottomRel = (child.AbsolutePosition.Y + child.AbsoluteSize.Y) - scrollTopAbs
+                if bottomRel > maxY then maxY = bottomRel end
             end
         end
 
-        local windowY = scroll.AbsoluteSize.Y
-        local minHeight = windowY + 80
+        local windowHeight = scroll.AbsoluteSize.Y
+        local minHeight = windowHeight + 100
 
-        local final = maxY + 80
+        local final = maxY + 60
         if final < minHeight then final = minHeight end
 
         scroll.CanvasSize = UDim2.new(0, 0, 0, final)
@@ -248,7 +250,7 @@ function Window.Create(Hub)
 
     task.spawn(function()
         while W.Gui and W.Gui.Parent do
-            task.wait(0.2)
+            task.wait(0.15)
             if W.Gui.Enabled then
                 pcall(W.RecalcCanvas)
             end
