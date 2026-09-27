@@ -172,6 +172,8 @@ function Window.Create(Hub)
     contentList.SortOrder = Enum.SortOrder.LayoutOrder
     contentList.Parent = W.ContentScroll
 
+    W.ContentList = contentList
+
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -218,8 +220,8 @@ function Window.Create(Hub)
         local big = UDim2.new(0, orig.X.Offset + 1, 0, orig.Y.Offset + 1)
         TweenService:Create(btn, TweenInfo.new(0.07), {Size = small}):Play()
         task.delay(0.07, function()
-            TweenService:Create(btn, TweenInfo.new(0.1), {Size = big}):Play()
-            task.delay(0.1, function()
+            TweenService:Create(btn, TweenInfo.new(0.12), {Size = big}):Play()
+            task.delay(0.12, function()
                 TweenService:Create(btn, TweenInfo.new(0.1), {Size = orig}):Play()
             end)
         end)
@@ -229,20 +231,23 @@ function Window.Create(Hub)
         local scroll = W.ContentScroll
         if not scroll then return end
 
-        local scrollTopAbs = scroll.AbsolutePosition.Y
-        local maxY = 0
+        local total = 0
+        local count = 0
+        local padding = 8
 
         for _, child in ipairs(scroll:GetChildren()) do
             if child:IsA("GuiObject") and child.Visible then
-                local bottomRel = (child.AbsolutePosition.Y + child.AbsoluteSize.Y) - scrollTopAbs
-                if bottomRel > maxY then maxY = bottomRel end
+                total = total + child.Size.Y.Offset
+                count = count + 1
             end
         end
 
-        local windowHeight = scroll.AbsoluteSize.Y
-        local minHeight = windowHeight + 100
+        if count > 1 then
+            total = total + padding * (count - 1)
+        end
 
-        local final = maxY + 60
+        local minHeight = scroll.AbsoluteSize.Y + 100
+        local final = total + 80
         if final < minHeight then final = minHeight end
 
         scroll.CanvasSize = UDim2.new(0, 0, 0, final)
@@ -250,7 +255,7 @@ function Window.Create(Hub)
 
     task.spawn(function()
         while W.Gui and W.Gui.Parent do
-            task.wait(0.15)
+            task.wait(0.1)
             if W.Gui.Enabled then
                 pcall(W.RecalcCanvas)
             end
