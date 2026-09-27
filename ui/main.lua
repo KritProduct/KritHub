@@ -21,9 +21,6 @@ function UI.Build(Hub)
 
     local W = Window.Create(Hub)
 
-    local TabsM = Tabs.Create(Hub, W)
-    Hub.State.TabsMaster = TabsM
-
     local cfgBtn = Instance.new("TextButton")
     cfgBtn.Name = "CfgButton"
     cfgBtn.Size = UDim2.new(0, 50, 0, 26)
@@ -47,19 +44,11 @@ function UI.Build(Hub)
     end
 
     cfgBtn.MouseButton1Click:Connect(function()
-        if cw then
-            cw.Toggle()
-        else
-            warn("[KritHub] ConfigWindow not loaded")
-        end
+        if cw then cw.Toggle() end
     end)
 
-    cfgBtn.MouseEnter:Connect(function()
-        cfgBtn.BackgroundColor3 = T.ItemHover
-    end)
-    cfgBtn.MouseLeave:Connect(function()
-        cfgBtn.BackgroundColor3 = T.Accent
-    end)
+    local TabsM = Tabs.Create(Hub, W)
+    Hub.State.TabsMaster = TabsM
 
     local combatTab = TabsM.Create("Combat")
 
@@ -234,6 +223,14 @@ function UI.Build(Hub)
     Toggle(Hub, W, wmMod, "Show Username", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowUsername = v end end)
     Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
 
+    local skinsTab = TabsM.Create("Skins")
+
+    local SkinChangerUI = Hub.UI.SkinChangerUI
+    if SkinChangerUI then
+        local scUI = SkinChangerUI.Build(Hub, W, skinsTab)
+        Hub.UI.SkinChangerRef = scUI
+    end
+
     local miscTab = TabsM.Create("Misc")
 
     local rejoinMod = Module.Create(Hub, W, miscTab, "Rejoin")
@@ -270,20 +267,14 @@ function UI.Build(Hub)
     spacer.Parent = W.ContentScroll
 
     combatTab.Select(false)
-    for _, m in pairs(visualsTab.Modules) do
-        m.Frame.Visible = false
-    end
-    for _, m in pairs(hudTab.Modules) do
-        m.Frame.Visible = false
-    end
-    for _, m in pairs(miscTab.Modules) do
-        m.Frame.Visible = false
-    end
+    for _, m in pairs(visualsTab.Modules) do m.Frame.Visible = false end
+    for _, m in pairs(hudTab.Modules) do m.Frame.Visible = false end
+    for _, m in pairs(miscTab.Modules) do m.Frame.Visible = false end
     Hub.State.PrevTab = combatTab
 
     W.FadeIn()
 
-    print("[KritHub] GUI built, CFG button:", cfgBtn ~= nil)
+    print("[KritHub] GUI built with SkinChanger tab")
 end
 
 return UI
