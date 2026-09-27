@@ -71,8 +71,11 @@ Hub.UI.ConfigWindow = load("ui/configwindow.lua")
 Hub.UI.Main = load("ui/main.lua")
 
 _G.KritHub = Hub
+_G.KritHubConfig = Hub.Features.Config
 
-    if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
+print("[KritHub] Hub exported to _G.KritHub")
+
+if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
 
 print("[KritHub] loaded")
 return Hub
