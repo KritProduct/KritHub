@@ -87,9 +87,12 @@ function Tabs.Create(Hub, W)
                 end
             end
 
-            Hub.State.PrevTab = tab
-
+            if Hub.UI.SkinChangerRef then
+                Hub.UI.SkinChangerRef.SetVisible(name == "Skins")
             end
+
+            Hub.State.PrevTab = tab
+        end
 
         btn.MouseButton1Click:Connect(function() selectThis(true) end)
         btn.MouseEnter:Connect(function()
