@@ -1,9 +1,7 @@
 local SkinChangerUI = {}
 
 function SkinChangerUI.Build(Hub, W, tab)
-    local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
-    local RS = game:GetService("ReplicatedStorage")
     local T = Hub.Theme
     local U = Hub.Utils
     local SC = Hub.Features.SkinChanger
@@ -163,7 +161,10 @@ function SkinChangerUI.Build(Hub, W, tab)
         end
 
         local cam = workspace:FindFirstChild("Camera")
-        if not cam then return end
+        if not cam then
+            weaponNameLabel.Text = UI.CurrentWeapon
+            return
+        end
 
         local weaponModel = nil
         for _, obj in ipairs(cam:GetChildren()) do
@@ -199,24 +200,6 @@ function SkinChangerUI.Build(Hub, W, tab)
         local distance = maxSize * 2.2
 
         viewportCam.CFrame = CFrame.new(cf.Position + Vector3.new(distance * 0.7, distance * 0.4, distance * 0.9), cf.Position)
-    end
-
-    local function updateWeaponList()
-        local weapons = SC.GetWeapons()
-        UI.Weapons = weapons
-        UI.WeaponIndex = 1
-
-        local current = SC.GetCurrentWeaponName()
-        for i, w in ipairs(weapons) do
-            if w == current then
-                UI.WeaponIndex = i
-                break
-            end
-        end
-
-        UI.CurrentWeapon = weapons[UI.WeaponIndex]
-        updateViewportModel()
-        SkinChangerUI.RefreshSkins(Hub, UI)
     end
 
     local function refreshSkins()
@@ -265,11 +248,32 @@ function SkinChangerUI.Build(Hub, W, tab)
                         end
                     end
                 end
+
+                print("[SkinChanger] selected skin:", skinName)
             end)
         end
     end
 
-    SkinChangerUI.RefreshSkins = refreshSkins
+    local function updateWeaponList()
+        local weapons = SC.GetWeapons()
+        UI.Weapons = weapons
+        UI.WeaponIndex = 1
+
+        local current = SC.GetCurrentWeaponName()
+        for i, w in ipairs(weapons) do
+            if w == current then
+                UI.WeaponIndex = i
+                break
+            end
+        end
+
+        UI.CurrentWeapon = weapons[UI.WeaponIndex]
+        updateViewportModel()
+        refreshSkins()
+    end
+
+    UI.RefreshSkins = refreshSkins
+    UI.UpdateWeaponList = updateWeaponList
 
     leftArrow.MouseButton1Click:Connect(function()
         if not UI.Weapons or #UI.Weapons == 0 then return end
@@ -292,9 +296,13 @@ function SkinChangerUI.Build(Hub, W, tab)
     end)
 
     applyBtn.MouseButton1Click:Connect(function()
-        if not UI.CurrentWeapon or not UI.SelectedSkin then return end
+        if not UI.CurrentWeapon or not UI.SelectedSkin then
+            print("[SkinChanger] не выбрано оружие или скин")
+            return
+        end
         local conds = SC.GetConditions(UI.CurrentWeapon, UI.SelectedSkin)
         local cond = conds[1] or "Factory New"
+        print("[SkinChanger] apply:", UI.CurrentWeapon, UI.SelectedSkin, cond)
         SC.Apply(UI.CurrentWeapon, UI.SelectedSkin, cond)
     end)
 
@@ -315,18 +323,16 @@ function SkinChangerUI.Build(Hub, W, tab)
         TweenService:Create(rightArrow, TweenInfo.new(0.15), {BackgroundTransparency = 0.2}):Play()
     end)
 
-    UI.UpdateWeaponList = updateWeaponList
-    UI.RefreshSkins = refreshSkins
-
     function UI.SetVisible(v)
         parent.Visible = v
         if v then
-            task.delay(0.1, updateWeaponList)
+            task.delay(0.15, updateWeaponList)
         end
     end
 
     function UI.Show()
         parent.Visible = true
+        task.delay(0.15, updateWeaponList)
     end
 
     function UI.Hide()
