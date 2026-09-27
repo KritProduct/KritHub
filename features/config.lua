@@ -77,6 +77,26 @@ return function(Hub)
             }
         end
 
+        local X = Hub.Features.Xray
+        if X then
+            data.Xray = { Transparency = X.Transparency }
+        end
+
+        if Hub.State and Hub.State.Modules then
+            data.ModuleStates = {}
+            data.ModuleBinds = {}
+            for name, mod in pairs(Hub.State.Modules) do
+                data.ModuleStates[name] = mod.Enabled
+                if mod.Bind then
+                    if typeof(mod.Bind) == "EnumItem" then
+                        data.ModuleBinds[name] = mod.Bind.Name
+                    else
+                        data.ModuleBinds[name] = tostring(mod.Bind)
+                    end
+                end
+            end
+        end
+
         return data
     end
 
@@ -148,11 +168,44 @@ return function(Hub)
             if d.DoJump ~= nil then AFK.DoJump = d.DoJump end
             if d.DoClick ~= nil then AFK.DoClick = d.DoClick end
         end
+
+        if data.Xray and Hub.Features.Xray then
+            local X, d = Hub.Features.Xray, data.Xray
+            if d.Transparency then X.Transparency = d.Transparency end
+        end
+
+        if data.ModuleBinds and Hub.State and Hub.State.Modules then
+            for name, bindName in pairs(data.ModuleBinds) do
+                local mod = Hub.State.Modules[name]
+                if mod then
+                    if bindName == "LMB" or bindName == "RMB" then
+                        mod.Bind = bindName
+                    else
+                        local ok, keyCode = pcall(function() return Enum.KeyCode[bindName] end)
+                        if ok and keyCode then
+                            mod.Bind = keyCode
+                        end
+                    end
+                    if mod.SetBindDisplay then
+                        mod.SetBindDisplay(bindName)
+                    end
+                end
+            end
+        end
+
+        if data.ModuleStates and Hub.State and Hub.State.Modules then
+            for name, enabled in pairs(data.ModuleStates) do
+                local mod = Hub.State.Modules[name]
+                if mod and mod.SetEnabled then
+                    pcall(function() mod.SetEnabled(enabled) end)
+                end
+            end
+        end
     end
 
     function Config.Save(name)
         if not hasApi() then
-            warn("[KritHub] no file api")
+            warn("[KritHub] file api not supported")
             return false
         end
 
@@ -180,7 +233,10 @@ return function(Hub)
     end
 
     function Config.Load(name)
-        if not hasApi() then return false end
+        if not hasApi() then
+            warn("[KritHub] file api not supported")
+            return false
+        end
 
         local path = Config.Folder .. "/" .. name .. Config.Extension
         if not isfile(path) then
@@ -232,7 +288,7 @@ return function(Hub)
     end
 
     function Config.HasApi()
-        return hasApi()
+        return hasApi() and true or false
     end
 
     return Config
