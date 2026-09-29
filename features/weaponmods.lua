@@ -73,41 +73,24 @@ return function(Hub)
         end
     end
 
-    function WeaponMods.EnableNoRecoil()
-        WeaponMods.NoRecoil = true
+    function WeaponMods.EnsureHooks()
         if not WeaponMods.Hooked then
             hookRecoil()
-            WeaponMods.Hooked = true
-        end
-        print("[WeaponMods] No Recoil ON")
-    end
-
-    function WeaponMods.DisableNoRecoil()
-        WeaponMods.NoRecoil = false
-        print("[WeaponMods] No Recoil OFF")
-    end
-
-    function WeaponMods.EnableNoSpread()
-        WeaponMods.NoSpread = true
-        if not WeaponMods.Hooked then
             hookSpread()
             WeaponMods.Hooked = true
         end
-        print("[WeaponMods] No Spread ON")
     end
 
-    function WeaponMods.DisableNoSpread()
-        WeaponMods.NoSpread = false
-        print("[WeaponMods] No Spread OFF")
+    function WeaponMods.SetNoRecoil(v)
+        WeaponMods.NoRecoil = v
+        if v then WeaponMods.EnsureHooks() end
+        print("[WeaponMods] No Recoil:", v and "ON" or "OFF")
     end
 
-    function WeaponMods.Enable()
-        WeaponMods.NoRecoil = true
-        WeaponMods.NoSpread = true
-        hookRecoil()
-        hookSpread()
-        WeaponMods.Hooked = true
-        print("[WeaponMods] enabled No Recoil + No Spread")
+    function WeaponMods.SetNoSpread(v)
+        WeaponMods.NoSpread = v
+        if v then WeaponMods.EnsureHooks() end
+        print("[WeaponMods] No Spread:", v and "ON" or "OFF")
     end
 
     function WeaponMods.Disable()
@@ -120,7 +103,7 @@ return function(Hub)
         pcall(hookRecoil)
         pcall(hookSpread)
         WeaponMods.Hooked = true
-        print("[WeaponMods] initial hooks installed")
+        print("[WeaponMods] hooks installed")
     end)
 
     return WeaponMods
