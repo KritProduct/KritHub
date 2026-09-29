@@ -233,9 +233,17 @@ function ConfigWindow.Create(Hub, mainWindow)
 
     local function clearRows()
         for _, row in ipairs(CW.Rows) do
-            row.Frame:Destroy()
+            if row.Frame then row.Frame:Destroy() end
         end
         CW.Rows = {}
+    end
+
+    local function clearAll()
+        for _, child in ipairs(scroll:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
     end
 
     local function makeRow(name)
@@ -373,7 +381,7 @@ function ConfigWindow.Create(Hub, mainWindow)
     end
 
     function CW.Refresh()
-        clearRows()
+        clearAll()
 
         if not Config then
             local err = Instance.new("TextLabel")
@@ -431,9 +439,8 @@ function ConfigWindow.Create(Hub, mainWindow)
     end
 
     addBtn.MouseButton1Click:Connect(function()
-        local name = "config_" .. os.date("%H%M%S")
         if Config and Config.Save then
-            Config.Save(name)
+            Config.Save()
             CW.Refresh()
         end
     end)
