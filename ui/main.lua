@@ -84,6 +84,31 @@ function UI.Build(Hub)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.Speed = v / 100 end
     end)
 
+    local silent = Module.Create(Hub, W, combatTab, "Silent Aim")
+    silent.OnToggle = function(v)
+        if Hub.Features.SilentAim then
+            if v then Hub.Features.SilentAim.Enable() else Hub.Features.SilentAim.Disable() end
+        end
+    end
+    Toggle(Hub, W, silent, "Wallbang", false, function(v)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.Wallbang = v end
+    end)
+    Toggle(Hub, W, silent, "Team Check", true, function(v)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.TeamCheck = v end
+    end)
+    Dropdown(Hub, W, silent, "Hit Part", {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart"}, "Head", function(v)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.HitPart = v end
+    end)
+    Toggle(Hub, W, silent, "Use FOV Circle", false, function(v)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.UseFovCircle = v end
+    end)
+    ColorPicker(Hub, W, silent, "FOV Color", Color3.fromRGB(255, 0, 0), function(c)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.FovColor = c end
+    end)
+    Slider(Hub, W, silent, "FOV Radius", 0, 300, 50, function(v)
+        if Hub.Features.SilentAim then Hub.Features.SilentAim.FovRadius = v end
+    end)
+
     local wmods = Module.Create(Hub, W, combatTab, "Weapon Mods")
     wmods.OnToggle = function(v)
         if Hub.Features.WeaponMods then
