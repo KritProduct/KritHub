@@ -104,33 +104,33 @@ function Window.Create(Hub)
     logoDot.ZIndex = 5
     logoDot.Parent = logo
 
-    W.Brand = Instance.new("TextLabel")
-    W.Brand.Size = UDim2.new(0, 100, 1, 0)
-    W.Brand.Position = UDim2.new(0, 52, 0, 0)
-    W.Brand.BackgroundTransparency = 1
-    W.Brand.Text = "KRIT"
-    W.Brand.TextColor3 = T.TextHi
-    W.Brand.Font = Enum.Font.GothamBold
-    W.Brand.TextSize = 17
-    W.Brand.TextXAlignment = Enum.TextXAlignment.Left
-    W.Brand.ZIndex = 4
-    W.Brand.Parent = W.Header
+    local brandLeft = Instance.new("TextLabel")
+    brandLeft.Size = UDim2.new(0, 60, 1, 0)
+    brandLeft.Position = UDim2.new(0, 52, 0, 0)
+    brandLeft.BackgroundTransparency = 1
+    brandLeft.Text = "KRIT"
+    brandLeft.TextColor3 = T.TextHi
+    brandLeft.Font = Enum.Font.GothamBold
+    brandLeft.TextSize = 17
+    brandLeft.TextXAlignment = Enum.TextXAlignment.Left
+    brandLeft.ZIndex = 4
+    brandLeft.Parent = W.Header
 
-    local brandAccent = Instance.new("TextLabel")
-    brandAccent.Size = UDim2.new(0, 100, 1, 0)
-    brandAccent.Position = UDim2.new(0, 86, 0, 0)
-    brandAccent.BackgroundTransparency = 1
-    brandAccent.Text = "HUB"
-    brandAccent.TextColor3 = T.Accent
-    brandAccent.Font = Enum.Font.GothamBold
-    brandAccent.TextSize = 17
-    brandAccent.TextXAlignment = Enum.TextXAlignment.Left
-    brandAccent.ZIndex = 4
-    brandAccent.Parent = W.Header
+    local brandRight = Instance.new("TextLabel")
+    brandRight.Size = UDim2.new(0, 60, 1, 0)
+    brandRight.Position = UDim2.new(0, 90, 0, 0)
+    brandRight.BackgroundTransparency = 1
+    brandRight.Text = "HUB"
+    brandRight.TextColor3 = T.Accent
+    brandRight.Font = Enum.Font.GothamBold
+    brandRight.TextSize = 17
+    brandRight.TextXAlignment = Enum.TextXAlignment.Left
+    brandRight.ZIndex = 4
+    brandRight.Parent = W.Header
 
     local version = Instance.new("TextLabel")
     version.Size = UDim2.new(0, 60, 1, 0)
-    version.Position = UDim2.new(0, 128, 0, 2)
+    version.Position = UDim2.new(0, 134, 0, 3)
     version.BackgroundTransparency = 1
     version.Text = "v1.0"
     version.TextColor3 = T.TextMuted
@@ -141,8 +141,9 @@ function Window.Create(Hub)
     version.Parent = W.Header
 
     W.MinBtn = Instance.new("TextButton")
+    W.MinBtn.Name = "MinButton"
     W.MinBtn.Size = UDim2.new(0, 28, 0, 28)
-    W.MinBtn.Position = UDim2.new(1, -100, 0, 10)
+    W.MinBtn.Position = UDim2.new(1, -98, 0, 10)
     W.MinBtn.BackgroundColor3 = T.Panel
     W.MinBtn.BorderSizePixel = 0
     W.MinBtn.Text = "-"
@@ -160,6 +161,7 @@ function Window.Create(Hub)
     minStroke.Parent = W.MinBtn
 
     W.CloseBtn = Instance.new("TextButton")
+    W.CloseBtn.Name = "CloseButton"
     W.CloseBtn.Size = UDim2.new(0, 28, 0, 28)
     W.CloseBtn.Position = UDim2.new(1, -66, 0, 10)
     W.CloseBtn.BackgroundColor3 = T.Panel
@@ -230,6 +232,8 @@ function Window.Create(Hub)
     contentList.Parent = W.ContentScroll
 
     W.ContentList = contentList
+
+    Hub.State.Window = W
 
     local dragging = false
     local dragStart = nil
