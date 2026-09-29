@@ -39,7 +39,7 @@ return function(Hub)
                     if el.Type ~= "button" then
                         local val
                         if el.Get then
-                            val = el:Get()
+                            val = el.Get()
                         else
                             val = el.Value
                         end
@@ -151,19 +151,19 @@ return function(Hub)
                         if el and el.Set then
                             if type(val) == "table" and val._type == "Color3" then
                                 if el.Type == "colorpicker" then
-                                    pcall(function() el:Set(Color3.new(val.R, val.G, val.B), false) end)
+                                    pcall(function() el.Set(Color3.new(val.R, val.G, val.B), false) end)
                                 end
                             elseif type(val) == "number" then
                                 if el.Type == "slider" then
-                                    pcall(function() el:Set(val, false) end)
+                                    pcall(function() el.Set(val, false) end)
                                 end
                             elseif type(val) == "string" then
                                 if el.Type == "dropdown" then
-                                    pcall(function() el:Set(val, false) end)
+                                    pcall(function() el.Set(val, false) end)
                                 end
                             elseif type(val) == "boolean" then
                                 if el.Type == "toggle" then
-                                    pcall(function() el:Set(val, false) end)
+                                    pcall(function() el.Set(val, false) end)
                                 end
                             end
                         end
