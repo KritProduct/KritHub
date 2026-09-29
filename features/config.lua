@@ -150,9 +150,21 @@ return function(Hub)
                         local el = mod.ElementsByName[elName]
                         if el and el.Set then
                             if type(val) == "table" and val._type == "Color3" then
-                                pcall(function() el:Set(Color3.new(val.R, val.G, val.B), false) end)
-                            else
-                                pcall(function() el:Set(val, false) end)
+                                if el.Type == "colorpicker" then
+                                    pcall(function() el:Set(Color3.new(val.R, val.G, val.B), false) end)
+                                end
+                            elseif type(val) == "number" then
+                                if el.Type == "slider" then
+                                    pcall(function() el:Set(val, false) end)
+                                end
+                            elseif type(val) == "string" then
+                                if el.Type == "dropdown" then
+                                    pcall(function() el:Set(val, false) end)
+                                end
+                            elseif type(val) == "boolean" then
+                                if el.Type == "toggle" then
+                                    pcall(function() el:Set(val, false) end)
+                                end
                             end
                         end
                     end
