@@ -92,13 +92,18 @@ function UI.Build(Hub)
     wmods.OnToggle = function(v)
         if Hub.Features.WeaponMods then
             if v then
-                Hub.Features.WeaponMods.EnableNoRecoil()
-                Hub.Features.WeaponMods.EnableNoSpread()
+                Hub.Features.WeaponMods.EnsureHooks()
             else
                 Hub.Features.WeaponMods.Disable()
             end
         end
     end
+    Toggle(Hub, W, wmods, "No Recoil", false, function(v)
+        if Hub.Features.WeaponMods then Hub.Features.WeaponMods.SetNoRecoil(v) end
+    end)
+    Toggle(Hub, W, wmods, "No Spread", false, function(v)
+        if Hub.Features.WeaponMods then Hub.Features.WeaponMods.SetNoSpread(v) end
+    end)
 
     local trig = Module.Create(Hub, W, combatTab, "Trigger Bot")
     trig.OnToggle = function(v)
