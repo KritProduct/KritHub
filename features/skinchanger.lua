@@ -6,8 +6,7 @@ return function(Hub)
     SkinChanger.SelectedWeapon = nil
     SkinChanger.SelectedSkin = nil
     SkinChanger.SelectedFloat = 0
-    SkinChanger.Hooked = false
-    SkinChanger.LoopConn = nil
+    SkinChanger.OnApply = nil
 
     local function getSkinsRoot()
         local assets = RS:FindFirstChild("Assets")
@@ -92,8 +91,6 @@ return function(Hub)
                 end
             end
         end
-
-        print("[SkinChanger] applied " .. applied .. " parts to " .. currentModel.Name)
     end
 
     SkinChanger.Reapply = applySkinToCurrentModel
@@ -109,6 +106,11 @@ return function(Hub)
         task.defer(applySkinToCurrentModel)
 
         print("[SkinChanger] applied: " .. weaponName .. " -> " .. skinName)
+
+        if SkinChanger.OnApply then
+            pcall(SkinChanger.OnApply, weaponName, skinName)
+        end
+
         return true
     end
 
