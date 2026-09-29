@@ -4,46 +4,62 @@ return function(Hub, W, module, text, callback)
     local U = Hub.Utils
 
     local row = Instance.new("Frame")
-    row.Size = UDim2.new(1, -8, 0, 28)
-    row.BackgroundColor3 = T.Accent
+    row.Size = UDim2.new(1, 0, 0, 34)
+    row.BackgroundColor3 = T.Settings
+    row.BackgroundTransparency = 1
     row.BorderSizePixel = 0
     row.LayoutOrder = #module.Elements + 1
     row.ZIndex = 5
     row.Parent = module.Settings
-    U.Corner(row, UDim.new(0, 8))
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Center
-    label.ZIndex = 6
-    label.Parent = row
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 1, 0)
+    line.BackgroundColor3 = T.Border
+    line.BorderSizePixel = 0
+    line.ZIndex = 5
+    line.Parent = row
 
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.ZIndex = 10
+    btn.Size = UDim2.new(1, -28, 0, 24)
+    btn.Position = UDim2.new(0, 14, 0.5, -12)
+    btn.BackgroundColor3 = T.Accent
+    btn.BackgroundTransparency = 0.85
+    btn.BorderSizePixel = 0
+    btn.Text = string.upper(text)
+    btn.TextColor3 = T.Accent
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    btn.ZIndex = 6
     btn.AutoButtonColor = false
     btn.Parent = row
+    U.Corner(btn, UDim.new(0, 2))
 
-    row.MouseEnter:Connect(function()
-        TweenService:Create(row, TweenInfo.new(0.15), {BackgroundColor3 = T.ItemHover}):Play()
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Color = T.AccentDim
+    btnStroke.Thickness = 1
+    btnStroke.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundTransparency = 0.6, TextColor3 = T.TextHi}):Play()
+        TweenService:Create(btnStroke, TweenInfo.new(0.12), {Color = T.Accent}):Play()
     end)
-    row.MouseLeave:Connect(function()
-        TweenService:Create(row, TweenInfo.new(0.15), {BackgroundColor3 = T.Accent}):Play()
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundTransparency = 0.85, TextColor3 = T.Accent}):Play()
+        TweenService:Create(btnStroke, TweenInfo.new(0.12), {Color = T.AccentDim}):Play()
     end)
 
     btn.MouseButton1Click:Connect(function()
         if callback then callback() end
     end)
 
-    local el = { Frame = row, Value = nil }
-    table.insert(module.Elements, el)
+    local el = {
+        Frame = row,
+        Name = text,
+        Value = nil,
+        Type = "button",
+    }
+
+    module.RegisterElement(el)
     return el
 end
