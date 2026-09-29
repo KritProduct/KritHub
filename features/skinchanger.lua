@@ -7,14 +7,11 @@ return function(Hub)
     SkinChanger.SelectedSkin = nil
     SkinChanger.SelectedFloat = 0
     SkinChanger.AllSkins = {}
-    SkinChanger.AppliedWeapon = nil
     SkinChanger.Hooked = false
+    SkinChanger.OriginalModules = {}
+    SkinChanger.ReapplyConn = nil
 
     local skinsModule = nil
-    local animationModule = nil
-    local originalGetCameraModel = nil
-    local originalGetWorldModel = nil
-    local originalConstruct = nil
 
     local function ensureModules()
         if skinsModule then return true end
@@ -68,6 +65,49 @@ return function(Hub)
         return nil
     end
 
+    local function getCurrentWeaponModel()
+        local cam = workspace:FindFirstChild("Camera")
+        if not cam then return nil end
+        for _, obj in ipairs(cam:GetChildren()) do
+            if obj:IsA("Model") then
+                return obj
+            end
+        end
+        return nil
+    end
+
+    local function applySkinToCurrentModel()
+        if not SkinChanger.Enabled then return end
+        if not SkinChanger.SelectedWeapon or not SkinChanger.SelectedSkin then return end
+        if not ensureModules() then return end
+
+        local currentModel = getCurrentWeaponModel()
+        if not currentModel then return end
+        if currentModel.Name ~= SkinChanger.SelectedWeapon then return end
+
+        local ok, newModel = pcall(skinsModule.GetCameraModel, SkinChanger.SelectedWeapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+        if not ok or not newModel then
+            warn("[SkinChanger] failed to get skin model")
+            return
+        end
+
+        local parent = currentModel.Parent
+        if not parent then return end
+
+        local cf = currentModel:GetPivot()
+
+        local clone = newModel:Clone()
+        clone.Name = currentModel.Name
+        clone:PivotTo(cf)
+
+        currentModel:Destroy()
+        clone.Parent = parent
+
+        print("[SkinChanger] re-applied skin to model: " .. clone.Name)
+    end
+
+    SkinChanger.Reapply = applySkinToCurrentModel
+
     local function hookModules()
         if SkinChanger.Hooked then return end
         if not ensureModules() then
@@ -75,38 +115,31 @@ return function(Hub)
             return
         end
 
-        originalGetCameraModel = skinsModule.GetCameraModel
-        originalGetWorldModel = skinsModule.GetWorldModel
-        originalConstruct = nil
+        SkinChanger.OriginalModules.GetCameraModel = skinsModule.GetCameraModel
+        SkinChanger.OriginalModules.GetWorldModel = skinsModule.GetWorldModel
 
         skinsModule.GetCameraModel = function(weapon, skin, float)
-            local result = originalGetCameraModel(weapon, skin, float)
-
             if SkinChanger.Enabled and SkinChanger.SelectedWeapon and SkinChanger.SelectedSkin then
                 if weapon == SkinChanger.SelectedWeapon then
-                    local ok, overrideModel = pcall(originalGetCameraModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+                    local ok, overrideModel = pcall(SkinChanger.OriginalModules.GetCameraModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
                     if ok and overrideModel then
                         return overrideModel
                     end
                 end
             end
-
-            return result
+            return SkinChanger.OriginalModules.GetCameraModel(weapon, skin, float)
         end
 
         skinsModule.GetWorldModel = function(weapon, skin, float)
-            local result = originalGetWorldModel(weapon, skin, float)
-
             if SkinChanger.Enabled and SkinChanger.SelectedWeapon and SkinChanger.SelectedSkin then
                 if weapon == SkinChanger.SelectedWeapon then
-                    local ok, overrideModel = pcall(originalGetWorldModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+                    local ok, overrideModel = pcall(SkinChanger.OriginalModules.GetWorldModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
                     if ok and overrideModel then
                         return overrideModel
                     end
                 end
             end
-
-            return result
+            return SkinChanger.OriginalModules.GetWorldModel(weapon, skin, float)
         end
 
         SkinChanger.Hooked = true
@@ -115,14 +148,28 @@ return function(Hub)
 
     local function unhookModules()
         if not SkinChanger.Hooked then return end
-        if skinsModule and originalGetCameraModel then
-            skinsModule.GetCameraModel = originalGetCameraModel
+        if skinsModule and SkinChanger.OriginalModules.GetCameraModel then
+            skinsModule.GetCameraModel = SkinChanger.OriginalModules.GetCameraModel
         end
-        if skinsModule and originalGetWorldModel then
-            skinsModule.GetWorldModel = originalGetWorldModel
+        if skinsModule and SkinChanger.OriginalModules.GetWorldModel then
+            skinsModule.GetWorldModel = SkinChanger.OriginalModules.GetWorldModel
         end
         SkinChanger.Hooked = false
         print("[SkinChanger] unhooked")
+    end
+
+    local function setupReapply()
+        if SkinChanger.ReapplyConn then return end
+        local cam = workspace:FindFirstChild("Camera")
+        if not cam then return end
+
+        SkinChanger.ReapplyConn = cam.ChildAdded:Connect(function(child)
+            if not SkinChanger.Enabled then return end
+            if not child:IsA("Model") then return end
+            task.wait(0.1)
+            pcall(applySkinToCurrentModel)
+        end)
+        print("[SkinChanger] re-apply hook installed")
     end
 
     function SkinChanger.Apply(weaponName, skinName, float)
@@ -137,6 +184,10 @@ return function(Hub)
             hookModules()
         end
 
+        setupReapply()
+
+        task.defer(applySkinToCurrentModel)
+
         print("[SkinChanger] applied:", weaponName, "->", skinName, "float:", SkinChanger.SelectedFloat)
         return true
     end
@@ -146,14 +197,18 @@ return function(Hub)
         SkinChanger.SelectedWeapon = nil
         SkinChanger.SelectedSkin = nil
         unhookModules()
+        if SkinChanger.ReapplyConn then
+            SkinChanger.ReapplyConn:Disconnect()
+            SkinChanger.ReapplyConn = nil
+        end
         print("[SkinChanger] reset")
     end
 
     function SkinChanger.Enable()
         SkinChanger.Enabled = true
-        if not SkinChanger.Hooked then
-            hookModules()
-        end
+        if not SkinChanger.Hooked then hookModules() end
+        setupReapply()
+        task.defer(applySkinToCurrentModel)
     end
 
     function SkinChanger.Disable()
