@@ -145,9 +145,9 @@ return function(Hub)
                     end
                 end
 
-                if modData.Elements and mod.GetElement then
+                if modData.Elements and mod.ElementsByName then
                     for elName, val in pairs(modData.Elements) do
-                        local el = mod:GetElement(elName)
+                        local el = mod.ElementsByName[elName]
                         if el and el.Set then
                             if type(val) == "table" and val._type == "Color3" then
                                 pcall(function() el:Set(Color3.new(val.R, val.G, val.B), false) end)
