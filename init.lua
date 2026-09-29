@@ -55,6 +55,8 @@ local watermark = load("features/watermark.lua")
 if watermark then Hub.Features.Watermark = watermark(Hub) end
 local config = load("features/config.lua")
 if config then Hub.Features.Config = config(Hub) end
+local weaponmods = load("features/weaponmods.lua")
+if weaponmods then Hub.Features.WeaponMods = weaponmods(Hub) end
 local skinchanger = load("features/skinchanger.lua")
 if skinchanger then Hub.Features.SkinChanger = skinchanger(Hub) end
 
@@ -77,14 +79,6 @@ _G.KritHub = Hub
 _G.KritHubConfig = Hub.Features.Config
 
 print("[KritHub] Hub exported to _G.KritHub")
-print("[KritHub] Loaded features:")
-for name, _ in pairs(Hub.Features) do
-    print("  - " .. name)
-end
-print("[KritHub] UI modules:")
-for name, _ in pairs(Hub.UI) do
-    print("  - " .. name)
-end
 
 if Hub.UI.Main then Hub.UI.Main.Build(Hub) end
 
