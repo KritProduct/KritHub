@@ -8,7 +8,7 @@ return function(Hub)
     SkinChanger.SelectedFloat = 0
     SkinChanger.OnApply = nil
 
-    local KNIFE_BLACKLIST = {
+    local BLACKLIST = {
         ["Karambit"] = true,
         ["Butterfly Knife"] = true,
         ["Flip Knife"] = true,
@@ -29,10 +29,22 @@ return function(Hub)
         ["Paracord Knife"] = true,
         ["Survival Knife"] = true,
         ["Kukri Knife"] = true,
+
+        ["C4"] = true,
+
+        ["Flashbang"] = true,
+        ["Decoy Grenade"] = true,
+        ["Smoke Grenade"] = true,
+        ["Molotov"] = true,
+        ["Incendiary Grenade"] = true,
+        ["HE Grenade"] = true,
+
+        ["Zeus x27"] = true,
+        ["LightSaber"] = true,
     }
 
-    function SkinChanger.IsKnife(weaponName)
-        return KNIFE_BLACKLIST[weaponName] == true
+    function SkinChanger.IsBlacklisted(weaponName)
+        return BLACKLIST[weaponName] == true
     end
 
     local function getSkinsRoot()
@@ -62,7 +74,7 @@ return function(Hub)
         if not skinsRoot then return {} end
         local list = {}
         for _, w in ipairs(skinsRoot:GetChildren()) do
-            if not KNIFE_BLACKLIST[w.Name] then
+            if not BLACKLIST[w.Name] then
                 table.insert(list, w.Name)
             end
         end
