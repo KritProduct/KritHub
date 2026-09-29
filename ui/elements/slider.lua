@@ -144,6 +144,7 @@ return function(Hub, W, module, text, min, max, default, callback)
     }
 
     function el.Set(v, silent)
+        if type(v) ~= "number" then return end
         state = math.clamp(v, min, max)
         el.Value = state
         local frac = (state - min) / (max - min)
