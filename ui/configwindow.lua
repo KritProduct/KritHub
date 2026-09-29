@@ -1,6 +1,6 @@
 local ConfigWindow = {}
 
-function ConfigWindow.Create(Hub, W)
+function ConfigWindow.Create(Hub, mainWindow)
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
@@ -13,7 +13,7 @@ function ConfigWindow.Create(Hub, W)
     CW.Visible = false
 
     CW.Main = Instance.new("Frame")
-    CW.Main.Name = "KritHubConfigs"
+    CW.Main.Name = "KritHubConfigsFrame"
     CW.Main.Size = UDim2.new(0, 320, 0, 480)
     CW.Main.Position = UDim2.new(0, 20, 0.5, -240)
     CW.Main.BackgroundColor3 = T.Background
@@ -22,7 +22,7 @@ function ConfigWindow.Create(Hub, W)
     CW.Main.ClipsDescendants = true
     CW.Main.Visible = false
     CW.Main.ZIndex = 100
-    CW.Main.Parent = W.Gui
+    CW.Main.Parent = mainWindow.Gui
     U.Corner(CW.Main, UDim.new(0, 3))
 
     local mainStroke = Instance.new("UIStroke")
@@ -201,7 +201,7 @@ function ConfigWindow.Create(Hub, W)
 
     local sectionTitle = Instance.new("TextLabel")
     sectionTitle.Size = UDim2.new(1, -24, 0, 16)
-    sectionTitle.Position = UDim2.new(0, 12, 0, 52)
+    sectionTitle.Position = UDim2.new(0, 12, 0, 54)
     sectionTitle.BackgroundTransparency = 1
     sectionTitle.Text = "SAVED CONFIGS"
     sectionTitle.TextColor3 = T.TextMuted
