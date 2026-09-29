@@ -6,25 +6,19 @@ return function(Hub)
     WeaponMods.RecoilHooks = {}
     WeaponMods.SpreadHooks = {}
 
-    local originalSetWeaponRecoil = nil
-    local originalCalculateRecoilOffset = nil
-    local originalWeaponKick = nil
-    local originalGetTrueSpread = nil
-
     local function hookRecoil()
-        if not getgc then return end
-        if not hookfunction then return end
+        if not getgc or not hookfunction or not debug or not debug.getinfo then return end
 
         for _, obj in next, getgc(true) do
             if type(obj) == "table" and rawget(obj, "setWeaponRecoil") and not WeaponMods.RecoilHooks[obj] then
-                local ok, old = pcall(function()
-                    return hookfunction(obj.setWeaponRecoil, function(...)
+                local old
+                local ok = pcall(function()
+                    old = hookfunction(obj.setWeaponRecoil, function(...)
                         if WeaponMods.NoRecoil then return end
-                        return oldSetWeaponRecoil_global and oldSetWeaponRecoil_global(...) or nil
+                        return old(...)
                     end)
                 end)
                 if ok and old then
-                    _G.SwillRecoil_setWeaponRecoil = old
                     WeaponMods.RecoilHooks[obj] = true
                 end
             end
@@ -32,28 +26,28 @@ return function(Hub)
             if type(obj) == "function" and not WeaponMods.RecoilHooks[obj] then
                 local info = debug.getinfo(obj)
                 if info and info.name == "calculateRecoilOffset" then
-                    local ok, old = pcall(function()
-                        return hookfunction(obj, function(...)
+                    local old
+                    local ok = pcall(function()
+                        old = hookfunction(obj, function(...)
                             if WeaponMods.NoRecoil then return UDim2.new() end
-                            return _G.SwillRecoil_calcOffset(...)
+                            return old(...)
                         end)
                     end)
                     if ok and old then
-                        _G.SwillRecoil_calcOffset = old
                         WeaponMods.RecoilHooks[obj] = true
                     end
                 end
             end
 
             if type(obj) == "table" and rawget(obj, "weaponKick") and not WeaponMods.RecoilHooks[obj] then
-                local ok, old = pcall(function()
-                    return hookfunction(obj.weaponKick, function(...)
+                local old
+                local ok = pcall(function()
+                    old = hookfunction(obj.weaponKick, function(...)
                         if WeaponMods.NoRecoil then return end
-                        return _G.SwillRecoil_weaponKick(...)
+                        return old(...)
                     end)
                 end)
                 if ok and old then
-                    _G.SwillRecoil_weaponKick = old
                     WeaponMods.RecoilHooks[obj] = true
                 end
             end
@@ -61,19 +55,18 @@ return function(Hub)
     end
 
     local function hookSpread()
-        if not getgc then return end
-        if not hookfunction then return end
+        if not getgc or not hookfunction then return end
 
         for _, obj in next, getgc(true) do
             if type(obj) == "table" and rawget(obj, "getTrueSpread") and not WeaponMods.SpreadHooks[obj] then
-                local ok, old = pcall(function()
-                    return hookfunction(obj.getTrueSpread, function(p1)
+                local old
+                local ok = pcall(function()
+                    old = hookfunction(obj.getTrueSpread, function(p1)
                         if WeaponMods.NoSpread then return 0 end
-                        return _G.SwillSpread_getTrueSpread(p1)
+                        return old(p1)
                     end)
                 end)
                 if ok and old then
-                    _G.SwillSpread_getTrueSpread = old
                     WeaponMods.SpreadHooks[obj] = true
                 end
             end
@@ -124,14 +117,10 @@ return function(Hub)
 
     task.spawn(function()
         task.wait(2)
-        if hookfunction and getgc then
-            pcall(hookRecoil)
-            pcall(hookSpread)
-            WeaponMods.Hooked = true
-            print("[WeaponMods] initial hooks installed")
-        else
-            warn("[WeaponMods] executor doesn't support getgc/hookfunction")
-        end
+        pcall(hookRecoil)
+        pcall(hookSpread)
+        WeaponMods.Hooked = true
+        print("[WeaponMods] initial hooks installed")
     end)
 
     return WeaponMods
