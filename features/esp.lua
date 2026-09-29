@@ -1,4 +1,4 @@
-return function(Hub)
+﻿return function(Hub)
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
     local LocalPlayer = Players.LocalPlayer
@@ -13,6 +13,7 @@ return function(Hub)
     ESP.Line = false
     ESP.Dot = false
     ESP.TeamOnly = false
+    ESP.UseDisplayName = false
     ESP.MaxDist = 2000
     ESP.EnemyColor = Color3.fromRGB(255, 60, 60)
     ESP.FriendColor = Color3.fromRGB(60, 255, 60)
@@ -45,13 +46,12 @@ return function(Hub)
     end
 
     local function GetDisplayName(ch)
-        local charName = ch:GetAttribute("CharacterName")
-        if charName and charName ~= "" then
-            return charName
-        end
         local plr = Players:GetPlayerFromCharacter(ch)
         if plr then
-            return plr.DisplayName or plr.Name
+            if ESP.UseDisplayName then
+                return plr.DisplayName
+            end
+            return plr.Name
         end
         return ch.Name
     end

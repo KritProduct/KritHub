@@ -126,6 +126,7 @@ function UI.Build(Hub)
     Toggle(Hub, W, esp, "Show Health", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Health = v end end)
     Toggle(Hub, W, esp, "Show Distance", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Distance = v end end)
     Toggle(Hub, W, esp, "Tracer Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
+    Toggle(Hub, W, esp, "Display Name", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.UseDisplayName = v end end)
     Slider(Hub, W, esp, "Render Distance", 250, 5000, 2000, function(v)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
     end)
