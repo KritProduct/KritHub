@@ -1,4 +1,4 @@
-local UI = {}
+﻿local UI = {}
 
 function UI.Build(Hub)
     local Players = game:GetService("Players")
@@ -128,19 +128,6 @@ function UI.Build(Hub)
     Toggle(Hub, W, esp, "Tracer Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
     Slider(Hub, W, esp, "Render Distance", 250, 5000, 2000, function(v)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
-    end)
-
-    local gESp = Module.Create(Hub, W, visualsTab, "Grenade ESP")
-    gESp.OnToggle = function(v)
-    end
-    Toggle(Hub, W, gESp, "Tracers", false, function(v)
-        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.Tracers = v end
-    end)
-    ColorPicker(Hub, W, gESp, "Tracer Color", Color3.fromRGB(255, 100, 0), function(c)
-        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.TracerColor = c end
-    end)
-    Toggle(Hub, W, gESp, "Flight Trail", false, function(v)
-        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.FlightTrail = v end
     end)
 
     local chams = Module.Create(Hub, W, visualsTab, "Chams")
@@ -273,19 +260,6 @@ function UI.Build(Hub)
     Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
 
     local miscTab = TabsM.Create("Misc")
-
-    local bhopMod = Module.Create(Hub, W, miscTab, "Bunny Hop")
-    bhopMod.OnToggle = function(v)
-        if Hub.Features.Movement then Hub.Features.Movement.AutoBhop = v end
-    end
-    Slider(Hub, W, bhopMod, "Speed", 5, 30, 18, function(v)
-        if Hub.Features.Movement then Hub.Features.Movement.BhopSpeed = v end
-    end)
-
-    local nfdMod = Module.Create(Hub, W, miscTab, "No Fall Damage")
-    nfdMod.OnToggle = function(v)
-        if Hub.Features.Movement then Hub.Features.Movement.NoFallDamage = v end
-    end
 
     local rejoinMod = Module.Create(Hub, W, miscTab, "Rejoin")
     Button(Hub, W, rejoinMod, "Rejoin Now", function()

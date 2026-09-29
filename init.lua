@@ -1,4 +1,4 @@
-local BASE = "https://raw.githubusercontent.com/KritProduct/KritHub/main"
+﻿local BASE = "https://raw.githubusercontent.com/KritProduct/KritHub/main"
 
 local function load(path)
     local url = BASE .. "/" .. path
@@ -57,14 +57,10 @@ local config = load("features/config.lua")
 if config then Hub.Features.Config = config(Hub) end
 local weaponmods = load("features/weaponmods.lua")
 if weaponmods then Hub.Features.WeaponMods = weaponmods(Hub) end
-local grenadeesp = load("features/grenadeesp.lua")
-if grenadeesp then Hub.Features.GrenadeESP = grenadeesp(Hub) end
 local weather = load("features/weather.lua")
 if weather then Hub.Features.Weather = weather(Hub) end
 local outdoorcolor = load("features/outdoorcolor.lua")
 if outdoorcolor then Hub.Features.OutdoorColor = outdoorcolor(Hub) end
-local movement = load("features/movement.lua")
-if movement then Hub.Features.Movement = movement(Hub) end
 
 local skinchanger = load("features/skinchanger.lua")
 if skinchanger then Hub.Features.SkinChanger = skinchanger(Hub) end
