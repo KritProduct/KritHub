@@ -24,7 +24,7 @@ function UI.Build(Hub)
     local cfgBtn = Instance.new("TextButton")
     cfgBtn.Name = "CfgButton"
     cfgBtn.Size = UDim2.new(0, 50, 0, 28)
-    cfgBtn.Position = UDim2.new(1, -134, 0, 9)
+    cfgBtn.Position = UDim2.new(1, -134, 0, 10)
     cfgBtn.BackgroundColor3 = T.Panel
     cfgBtn.BorderSizePixel = 0
     cfgBtn.Text = "CFG"
