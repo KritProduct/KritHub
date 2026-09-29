@@ -88,6 +88,18 @@ function UI.Build(Hub)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.Speed = v / 100 end
     end)
 
+    local wmods = Module.Create(Hub, W, combatTab, "Weapon Mods")
+    wmods.OnToggle = function(v)
+        if Hub.Features.WeaponMods then
+            if v then
+                Hub.Features.WeaponMods.EnableNoRecoil()
+                Hub.Features.WeaponMods.EnableNoSpread()
+            else
+                Hub.Features.WeaponMods.Disable()
+            end
+        end
+    end
+
     local trig = Module.Create(Hub, W, combatTab, "Trigger Bot")
     trig.OnToggle = function(v)
         if Hub.Features.TriggerBot then
@@ -285,7 +297,7 @@ function UI.Build(Hub)
 
     W.FadeIn()
 
-    print("[KritHub] GUI rebuilt with CS2 style")
+    print("[KritHub] GUI built")
 end
 
 return UI
