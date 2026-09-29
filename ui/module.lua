@@ -7,7 +7,7 @@ function Module.Create(Hub, W, tab, name)
     local U = Hub.Utils
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -6, 0, 38)
+    frame.Size = UDim2.new(1, -6, 0, 40)
     frame.BackgroundColor3 = T.Item
     frame.BorderSizePixel = 0
     frame.LayoutOrder = #tab.Modules + 1
@@ -31,26 +31,14 @@ function Module.Create(Hub, W, tab, name)
     accentBar.Parent = frame
 
     local head = Instance.new("Frame")
-    head.Size = UDim2.new(1, 0, 0, 38)
+    head.Size = UDim2.new(1, 0, 0, 40)
     head.BackgroundTransparency = 1
     head.ZIndex = 4
     head.Parent = frame
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -140, 1, 0)
-    label.Position = UDim2.new(0, 42, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = string.upper(name)
-    label.TextColor3 = T.TextDim
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.ZIndex = 5
-    label.Parent = head
-
     local switcher = Instance.new("Frame")
     switcher.Size = UDim2.new(0, 28, 0, 14)
-    switcher.Position = UDim2.new(0, 14, 0.5, -7)
+    switcher.Position = UDim2.new(0, 16, 0.5, -7)
     switcher.BackgroundColor3 = Color3.fromRGB(21, 21, 26)
     switcher.BorderSizePixel = 0
     switcher.ZIndex = 5
@@ -71,15 +59,27 @@ function Module.Create(Hub, W, tab, name)
     knob.Parent = switcher
     U.Corner(knob, UDim.new(0, 1))
 
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -160, 1, 0)
+    label.Position = UDim2.new(0, 56, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = string.upper(name)
+    label.TextColor3 = T.TextDim
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 5
+    label.Parent = head
+
     local expand = Instance.new("TextButton")
     expand.Size = UDim2.new(0, 22, 0, 22)
     expand.Position = UDim2.new(1, -56, 0.5, -11)
     expand.BackgroundColor3 = T.Panel
     expand.BorderSizePixel = 0
-    expand.Text = "▾"
+    expand.Text = "v"
     expand.TextColor3 = T.TextDim
-    expand.Font = Enum.Font.GothamBold
-    expand.TextSize = 12
+    expand.Font = Enum.Font.Code
+    expand.TextSize = 14
     expand.ZIndex = 5
     expand.AutoButtonColor = false
     expand.Parent = head
@@ -97,8 +97,8 @@ function Module.Create(Hub, W, tab, name)
     bind.BorderSizePixel = 0
     bind.Text = "+"
     bind.TextColor3 = T.TextDim
-    bind.Font = Enum.Font.GothamBold
-    bind.TextSize = 12
+    bind.Font = Enum.Font.Code
+    bind.TextSize = 14
     bind.ZIndex = 5
     bind.AutoButtonColor = false
     bind.Parent = head
@@ -111,7 +111,7 @@ function Module.Create(Hub, W, tab, name)
 
     local settings = Instance.new("ScrollingFrame")
     settings.Size = UDim2.new(1, -16, 0, 0)
-    settings.Position = UDim2.new(0, 8, 0, 40)
+    settings.Position = UDim2.new(0, 8, 0, 42)
     settings.BackgroundTransparency = 1
     settings.BorderSizePixel = 0
     settings.ScrollBarThickness = 4
@@ -151,7 +151,7 @@ function Module.Create(Hub, W, tab, name)
     }
 
     local clickZone = Instance.new("TextButton")
-    clickZone.Size = UDim2.new(0, 34, 1, 0)
+    clickZone.Size = UDim2.new(0, 50, 1, 0)
     clickZone.Position = UDim2.new(0, 8, 0, 0)
     clickZone.BackgroundTransparency = 1
     clickZone.Text = ""
@@ -161,7 +161,6 @@ function Module.Create(Hub, W, tab, name)
 
     local function setEnabled(v, silent)
         mod.Enabled = v
-        local c = v and T.Accent or Color3.fromRGB(21, 21, 26)
 
         if v then
             TweenService:Create(switcher, TweenInfo.new(0.15), {BackgroundColor3 = T.AccentDim}):Play()
@@ -195,18 +194,22 @@ function Module.Create(Hub, W, tab, name)
 
     expand.MouseEnter:Connect(function()
         TweenService:Create(expand, TweenInfo.new(0.12), {BackgroundColor3 = T.AccentDim, TextColor3 = T.Accent}):Play()
+        TweenService:Create(expandStroke, TweenInfo.new(0.12), {Color = T.Accent}):Play()
     end)
     expand.MouseLeave:Connect(function()
         TweenService:Create(expand, TweenInfo.new(0.12), {BackgroundColor3 = T.Panel, TextColor3 = T.TextDim}):Play()
+        TweenService:Create(expandStroke, TweenInfo.new(0.12), {Color = T.Border2}):Play()
     end)
     bind.MouseEnter:Connect(function()
         if not mod.Listening then
             TweenService:Create(bind, TweenInfo.new(0.12), {BackgroundColor3 = T.AccentDim, TextColor3 = T.Accent}):Play()
+            TweenService:Create(bindStroke, TweenInfo.new(0.12), {Color = T.Accent}):Play()
         end
     end)
     bind.MouseLeave:Connect(function()
         if not mod.Listening then
             TweenService:Create(bind, TweenInfo.new(0.12), {BackgroundColor3 = T.Panel, TextColor3 = T.TextDim}):Play()
+            TweenService:Create(bindStroke, TweenInfo.new(0.12), {Color = T.Border2}):Play()
         end
     end)
 
@@ -219,10 +222,10 @@ function Module.Create(Hub, W, tab, name)
         end
 
         local maxSettingsHeight = 250
-        local targetHeight = 38
+        local targetHeight = 40
         if mod.Open then
             local visibleHeight = math.min(settingsHeight, maxSettingsHeight)
-            targetHeight = 38 + visibleHeight + 8
+            targetHeight = 40 + visibleHeight + 8
         end
 
         TweenService:Create(frame, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -242,7 +245,7 @@ function Module.Create(Hub, W, tab, name)
                     Position = UDim2.new(0, 0, 0, targetY),
                 }):Play()
             end
-            TweenService:Create(expand, TweenInfo.new(0.25), {Rotation = 180}):Play()
+            expand.Text = "^"
         else
             for i, el in ipairs(mod.Elements) do
                 local targetY = (i - 1) * (el.Frame.Size.Y.Offset + 1) + 10
@@ -257,7 +260,7 @@ function Module.Create(Hub, W, tab, name)
                     el.Frame.Visible = false
                 end
             end)
-            TweenService:Create(expand, TweenInfo.new(0.25), {Rotation = 0}):Play()
+            expand.Text = "v"
         end
 
         task.delay(0.4, function()
@@ -270,6 +273,7 @@ function Module.Create(Hub, W, tab, name)
         bind.Text = "..."
         bind.BackgroundColor3 = T.AccentDim
         bind.TextColor3 = T.Accent
+        bindStroke.Color = T.Accent
     end
 
     local function stopListening(keyName, keyCode)
@@ -278,6 +282,7 @@ function Module.Create(Hub, W, tab, name)
         bind.Text = keyName
         bind.BackgroundColor3 = T.Panel
         bind.TextColor3 = T.TextDim
+        bindStroke.Color = T.Border2
     end
 
     local function cancelListening()
@@ -286,6 +291,7 @@ function Module.Create(Hub, W, tab, name)
         bind.Text = "+"
         bind.BackgroundColor3 = T.Panel
         bind.TextColor3 = T.TextDim
+        bindStroke.Color = T.Border2
     end
 
     function mod.SetBindDisplay(keyName)
