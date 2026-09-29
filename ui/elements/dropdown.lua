@@ -99,6 +99,7 @@ return function(Hub, W, module, text, options, default, callback)
     }
 
     function el.Set(v, silent)
+        if type(v) ~= "string" then return end
         for i, opt in ipairs(options) do
             if opt == v then
                 index = i
