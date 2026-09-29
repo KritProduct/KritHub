@@ -1,10 +1,12 @@
 local Utils = {}
+
 function Utils.Corner(parent, radius)
     local c = Instance.new("UICorner")
-    c.CornerRadius = radius or UDim.new(0, 8)
+    c.CornerRadius = radius or UDim.new(0, 4)
     c.Parent = parent
     return c
 end
+
 function Utils.Stroke(parent, color, thickness)
     local s = Instance.new("UIStroke")
     s.Color = color
@@ -13,6 +15,7 @@ function Utils.Stroke(parent, color, thickness)
     s.Parent = parent
     return s
 end
+
 function Utils.Padding(parent, all)
     local p = Instance.new("UIPadding")
     p.PaddingTop = UDim.new(0, all)
@@ -22,4 +25,13 @@ function Utils.Padding(parent, all)
     p.Parent = parent
     return p
 end
+
+function Utils.Gradient(parent, color1, color2, rotation)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new(color1, color2)
+    g.Rotation = rotation or 90
+    g.Parent = parent
+    return g
+end
+
 return Utils
