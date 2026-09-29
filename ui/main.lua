@@ -23,18 +23,23 @@ function UI.Build(Hub)
 
     local cfgBtn = Instance.new("TextButton")
     cfgBtn.Name = "CfgButton"
-    cfgBtn.Size = UDim2.new(0, 50, 0, 26)
-    cfgBtn.Position = UDim2.new(1, -122, 0, 11)
-    cfgBtn.BackgroundColor3 = T.Accent
+    cfgBtn.Size = UDim2.new(0, 50, 0, 28)
+    cfgBtn.Position = UDim2.new(1, -134, 0, 9)
+    cfgBtn.BackgroundColor3 = T.Panel
     cfgBtn.BorderSizePixel = 0
     cfgBtn.Text = "CFG"
-    cfgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cfgBtn.TextColor3 = T.Accent
     cfgBtn.Font = Enum.Font.GothamBold
-    cfgBtn.TextSize = 12
+    cfgBtn.TextSize = 11
     cfgBtn.ZIndex = 10
     cfgBtn.AutoButtonColor = false
     cfgBtn.Parent = W.Header
-    U.Corner(cfgBtn, UDim.new(0, 8))
+    U.Corner(cfgBtn, UDim.new(0, 2))
+
+    local cfgStroke = Instance.new("UIStroke")
+    cfgStroke.Color = T.AccentDim
+    cfgStroke.Thickness = 1
+    cfgStroke.Parent = cfgBtn
 
     local ConfigWindow = Hub.UI.ConfigWindow
     local cw = nil
@@ -45,6 +50,12 @@ function UI.Build(Hub)
 
     cfgBtn.MouseButton1Click:Connect(function()
         if cw then cw.Toggle() end
+    end)
+    cfgBtn.MouseEnter:Connect(function()
+        cfgStroke.Color = T.Accent
+    end)
+    cfgBtn.MouseLeave:Connect(function()
+        cfgStroke.Color = T.AccentDim
     end)
 
     local TabsM = Tabs.Create(Hub, W)
@@ -92,7 +103,7 @@ function UI.Build(Hub)
     Dropdown(Hub, W, trig, "Target Mode", {"Head", "Torso", "Both"}, "Head", function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.TargetMode = v end
     end)
-    Slider(Hub, W, trig, "Shot Delay (ms)", 0, 500, 100, function(v)
+    Slider(Hub, W, trig, "Shot Delay", 0, 500, 100, function(v)
         if Hub.Features.TriggerBot then Hub.Features.TriggerBot.ShotDelay = v end
     end)
 
@@ -210,6 +221,14 @@ function UI.Build(Hub)
         if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
+    local skinsTab = TabsM.Create("Skins")
+    local SkinChangerUI = Hub.UI.SkinChangerUI
+    if SkinChangerUI then
+        local scUI = SkinChangerUI.Build(Hub, W, skinsTab)
+        Hub.UI.SkinChangerRef = scUI
+        scUI.SetVisible(false)
+    end
+
     local hudTab = TabsM.Create("HUD")
 
     local wmMod = Module.Create(Hub, W, hudTab, "Watermark")
@@ -222,14 +241,6 @@ function UI.Build(Hub)
     Toggle(Hub, W, wmMod, "Show Ping", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowPing = v end end)
     Toggle(Hub, W, wmMod, "Show Username", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowUsername = v end end)
     Toggle(Hub, W, wmMod, "Show Time", true, function(v) if Hub.Features.Watermark then Hub.Features.Watermark.ShowTime = v end end)
-
-    local skinsTab = TabsM.Create("Skins")
-
-    local SkinChangerUI = Hub.UI.SkinChangerUI
-    if SkinChangerUI then
-        local scUI = SkinChangerUI.Build(Hub, W, skinsTab)
-        Hub.UI.SkinChangerRef = scUI
-    end
 
     local miscTab = TabsM.Create("Misc")
 
@@ -274,7 +285,7 @@ function UI.Build(Hub)
 
     W.FadeIn()
 
-    print("[KritHub] GUI built with SkinChanger tab")
+    print("[KritHub] GUI rebuilt with CS2 style")
 end
 
 return UI
