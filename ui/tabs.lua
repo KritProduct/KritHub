@@ -8,17 +8,9 @@ function Tabs.Create(Hub, W)
     local TabsM = {}
     TabsM.List = {}
 
-    local tabIcons = {
-        Combat = "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83",
-        Visuals = "M12 4C7 4 3 8 2 12c1 4 5 8 10 8s9-4 10-8c-1-4-5-8-10-8zm0 12a4 4 0 110-8 4 4 0 010 8z",
-        Skins = "M4 7l8-4 8 4v10l-8 4-8-4V7z",
-        HUD = "M2 5h20v12H2V5zm6 16h8M12 17v4",
-        Misc = "M12 12a3 3 0 100-6 3 3 0 000 6zm0 0v6M6 9H3M21 9h-3",
-    }
-
     function TabsM.Create(name)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 38)
+        btn.Size = UDim2.new(1, 0, 0, 36)
         btn.BackgroundColor3 = T.Background
         btn.BackgroundTransparency = 1
         btn.BorderSizePixel = 0
@@ -37,26 +29,9 @@ function Tabs.Create(Hub, W)
         accentBar.ZIndex = 4
         accentBar.Parent = btn
 
-        local icon = Instance.new("ImageLabel")
-        icon.Size = UDim2.new(0, 16, 0, 16)
-        icon.Position = UDim2.new(0, 14, 0.5, -8)
-        icon.BackgroundTransparency = 1
-        icon.Image = ""
-        icon.ImageColor3 = T.TextDim
-        icon.ZIndex = 4
-        icon.Parent = btn
-
-        local iconSvg = Instance.new("Frame")
-        iconSvg.Size = UDim2.new(0, 3, 0, 3)
-        iconSvg.Position = UDim2.new(0, 20, 0.5, -1)
-        iconSvg.BackgroundColor3 = T.TextDim
-        iconSvg.BorderSizePixel = 0
-        iconSvg.ZIndex = 4
-        iconSvg.Parent = btn
-
         local txt = Instance.new("TextLabel")
-        txt.Size = UDim2.new(1, -40, 1, 0)
-        txt.Position = UDim2.new(0, 32, 0, 0)
+        txt.Size = UDim2.new(1, -34, 1, 0)
+        txt.Position = UDim2.new(0, 14, 0, 0)
         txt.BackgroundTransparency = 1
         txt.Text = string.upper(name)
         txt.TextColor3 = T.TextDim
@@ -68,7 +43,7 @@ function Tabs.Create(Hub, W)
 
         local countLabel = Instance.new("TextLabel")
         countLabel.Size = UDim2.new(0, 20, 1, 0)
-        countLabel.Position = UDim2.new(1, -24, 0, 0)
+        countLabel.Position = UDim2.new(1, -22, 0, 0)
         countLabel.BackgroundTransparency = 1
         countLabel.Text = "0"
         countLabel.TextColor3 = T.TextMuted
@@ -116,32 +91,12 @@ function Tabs.Create(Hub, W)
             local prev = Hub.State.PrevTab
             if prev and prev ~= tab then
                 for _, m in pairs(prev.Modules) do
-                    if animated then
-                        local fade = TweenService:Create(m.Frame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
-                        fade:Play()
-                        TweenService:Create(m.Frame, TweenInfo.new(0.15), {Position = UDim2.new(m.Frame.Position.X.Scale, m.Frame.Position.X.Offset - 15, m.Frame.Position.Y.Scale, m.Frame.Position.Y.Offset)}):Play()
-                        fade.Completed:Connect(function()
-                            m.Frame.Visible = false
-                            m.Frame.Position = UDim2.new(0, 0, 0, m.Frame.Position.Y.Offset)
-                        end)
-                    else
-                        m.Frame.Visible = false
-                    end
+                    m.Frame.Visible = false
                 end
             end
 
             for _, m in pairs(tab.Modules) do
                 m.Frame.Visible = true
-                if animated then
-                    m.Frame.BackgroundTransparency = 1
-                    m.Frame.Position = UDim2.new(0, 15, 0, m.Frame.Position.Y.Offset)
-                    TweenService:Create(m.Frame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0,
-                        Position = UDim2.new(0, 0, 0, m.Frame.Position.Y.Offset),
-                    }):Play()
-                else
-                    m.Frame.BackgroundTransparency = 0
-                end
             end
 
             if Hub.UI.SkinChangerRef then
