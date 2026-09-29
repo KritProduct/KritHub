@@ -8,9 +8,11 @@ function SkinChangerUI.Build(Hub, W, tab)
 
     local UI = {}
     UI.SC = SC
+    UI.Weapons = {}
+    UI.WeaponIndex = 1
     UI.CurrentWeapon = nil
-    UI.SelectedSkin = nil
-    UI.SelectedCondition = "Factory New"
+    UI.SkinButtons = {}
+    UI.SelectedSkin = SC.SelectedSkin or nil
 
     local parent = Instance.new("Frame")
     parent.Name = "SkinChangerRoot"
@@ -85,17 +87,29 @@ function SkinChangerUI.Build(Hub, W, tab)
     weaponNameLabel.ZIndex = 10
     weaponNameLabel.Parent = viewportFrame
 
-    local skinListTitle = Instance.new("TextLabel")
-    skinListTitle.Size = UDim2.new(1, 0, 0, 24)
-    skinListTitle.Position = UDim2.new(0, 10, 0, 228)
-    skinListTitle.BackgroundTransparency = 1
-    skinListTitle.Text = "SKINS"
-    skinListTitle.TextColor3 = T.Accent
-    skinListTitle.Font = Enum.Font.GothamBold
-    skinListTitle.TextSize = 14
-    skinListTitle.TextXAlignment = Enum.TextXAlignment.Left
-    skinListTitle.ZIndex = 4
-    skinListTitle.Parent = parent
+    local sectionTitle = Instance.new("TextLabel")
+    sectionTitle.Size = UDim2.new(0, 100, 0, 20)
+    sectionTitle.Position = UDim2.new(0, 10, 0, 226)
+    sectionTitle.BackgroundTransparency = 1
+    sectionTitle.Text = "SKINS"
+    sectionTitle.TextColor3 = T.TextMuted
+    sectionTitle.Font = Enum.Font.Code
+    sectionTitle.TextSize = 11
+    sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    sectionTitle.ZIndex = 4
+    sectionTitle.Parent = parent
+
+    local selectedLabel = Instance.new("TextLabel")
+    selectedLabel.Size = UDim2.new(1, -120, 0, 20)
+    selectedLabel.Position = UDim2.new(0, 110, 0, 226)
+    selectedLabel.BackgroundTransparency = 1
+    selectedLabel.Text = "SELECTED: NONE"
+    selectedLabel.TextColor3 = T.Accent
+    selectedLabel.Font = Enum.Font.Code
+    selectedLabel.TextSize = 11
+    selectedLabel.TextXAlignment = Enum.TextXAlignment.Right
+    selectedLabel.ZIndex = 4
+    selectedLabel.Parent = parent
 
     local skinScroll = Instance.new("ScrollingFrame")
     skinScroll.Size = UDim2.new(1, 0, 0, 200)
@@ -190,10 +204,7 @@ function SkinChangerUI.Build(Hub, W, tab)
             end
         end
 
-        local inner = clone:FindFirstChild("Weapon")
-        local center = inner and inner:FindFirstChildOfClass("Model") or clone
-
-        local cf, size = center:GetBoundingBox()
+        local cf, size = clone:GetBoundingBox()
         local maxSize = math.max(size.X, size.Y, size.Z)
         if maxSize <= 0 then maxSize = 5 end
 
@@ -202,22 +213,36 @@ function SkinChangerUI.Build(Hub, W, tab)
         viewportCam.CFrame = CFrame.new(cf.Position + Vector3.new(distance * 0.7, distance * 0.4, distance * 0.9), cf.Position)
     end
 
+    local function highlightSkin(skinName)
+        for _, btn in ipairs(UI.SkinButtons) do
+            if btn.Name == skinName then
+                btn.BackgroundColor3 = T.Accent
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            else
+                btn.BackgroundColor3 = T.Item
+                btn.TextColor3 = T.Text
+            end
+        end
+    end
+
     local function refreshSkins()
         for _, c in ipairs(skinScroll:GetChildren()) do
             if c:IsA("TextButton") then
                 c:Destroy()
             end
         end
+        UI.SkinButtons = {}
 
         if not UI.CurrentWeapon then return end
 
         local skins = SC.GetSkinsForWeapon(UI.CurrentWeapon)
 
-        for _, skinName in ipairs(skins) do
+        for _, skin in ipairs(skins) do
             local btn = Instance.new("TextButton")
+            btn.Name = skin.Name
             btn.BackgroundColor3 = T.Item
             btn.BorderSizePixel = 0
-            btn.Text = skinName
+            btn.Text = skin.Name
             btn.TextColor3 = T.Text
             btn.Font = Enum.Font.GothamSemibold
             btn.TextSize = 12
@@ -227,35 +252,35 @@ function SkinChangerUI.Build(Hub, W, tab)
             btn.Parent = skinScroll
             U.Corner(btn, UDim.new(0, 6))
 
+            if skin.Name == UI.SelectedSkin then
+                btn.BackgroundColor3 = T.Accent
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end
+
             btn.MouseEnter:Connect(function()
-                TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = T.ItemHover}):Play()
+                if UI.SelectedSkin ~= skin.Name then
+                    TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = T.ItemHover}):Play()
+                end
             end)
             btn.MouseLeave:Connect(function()
-                if UI.SelectedSkin ~= skinName then
+                if UI.SelectedSkin ~= skin.Name then
                     TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = T.Item}):Play()
                 end
             end)
 
             btn.MouseButton1Click:Connect(function()
-                UI.SelectedSkin = skinName
-
-                for _, c in ipairs(skinScroll:GetChildren()) do
-                    if c:IsA("TextButton") then
-                        if c.Text == skinName then
-                            c.BackgroundColor3 = T.Accent
-                        else
-                            c.BackgroundColor3 = T.Item
-                        end
-                    end
-                end
-
-                print("[SkinChanger] selected skin:", skinName)
+                UI.SelectedSkin = skin.Name
+                selectedLabel.Text = "SELECTED: " .. string.upper(skin.Name)
+                highlightSkin(skin.Name)
+                print("[SkinUI] selected:", skin.Name)
             end)
+
+            table.insert(UI.SkinButtons, btn)
         end
     end
 
     local function updateWeaponList()
-        local weapons = SC.GetWeapons()
+        local weapons = SC.GetAllWeapons()
         UI.Weapons = weapons
         UI.WeaponIndex = 1
 
@@ -275,12 +300,17 @@ function SkinChangerUI.Build(Hub, W, tab)
     UI.RefreshSkins = refreshSkins
     UI.UpdateWeaponList = updateWeaponList
 
+    SC.OnApply = function(weaponName, skinName)
+        UI.SelectedSkin = skinName
+        selectedLabel.Text = "SELECTED: " .. string.upper(skinName)
+        highlightSkin(skinName)
+    end
+
     leftArrow.MouseButton1Click:Connect(function()
         if not UI.Weapons or #UI.Weapons == 0 then return end
         UI.WeaponIndex = UI.WeaponIndex - 1
         if UI.WeaponIndex < 1 then UI.WeaponIndex = #UI.Weapons end
         UI.CurrentWeapon = UI.Weapons[UI.WeaponIndex]
-        UI.SelectedSkin = nil
         updateViewportModel()
         refreshSkins()
     end)
@@ -290,24 +320,23 @@ function SkinChangerUI.Build(Hub, W, tab)
         UI.WeaponIndex = UI.WeaponIndex + 1
         if UI.WeaponIndex > #UI.Weapons then UI.WeaponIndex = 1 end
         UI.CurrentWeapon = UI.Weapons[UI.WeaponIndex]
-        UI.SelectedSkin = nil
         updateViewportModel()
         refreshSkins()
     end)
 
     applyBtn.MouseButton1Click:Connect(function()
         if not UI.CurrentWeapon or not UI.SelectedSkin then
-            print("[SkinChanger] не выбрано оружие или скин")
+            print("[SkinUI] no weapon or skin selected")
             return
         end
-        local conds = SC.GetConditions(UI.CurrentWeapon, UI.SelectedSkin)
-        local cond = conds[1] or "Factory New"
-        print("[SkinChanger] apply:", UI.CurrentWeapon, UI.SelectedSkin, cond)
-        SC.Apply(UI.CurrentWeapon, UI.SelectedSkin, cond)
+        SC.Apply(UI.CurrentWeapon, UI.SelectedSkin, 0)
     end)
 
     resetBtn.MouseButton1Click:Connect(function()
         SC.Reset()
+        UI.SelectedSkin = nil
+        selectedLabel.Text = "SELECTED: NONE"
+        highlightSkin(nil)
     end)
 
     leftArrow.MouseEnter:Connect(function()
