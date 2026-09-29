@@ -201,12 +201,13 @@ function Window.Create(Hub)
     sidebarPadding.Parent = W.Sidebar
 
     local sidebarDivider = Instance.new("Frame")
-    sidebarDivider.Size = UDim2.new(0, 1, 1, 0)
-    sidebarDivider.Position = UDim2.new(1, -1, 0, 0)
+    sidebarDivider.Name = "SidebarDivider"
+    sidebarDivider.Size = UDim2.new(0, 1, 1, -48)
+    sidebarDivider.Position = UDim2.new(0, 139, 0, 48)
     sidebarDivider.BackgroundColor3 = T.Border
     sidebarDivider.BorderSizePixel = 0
     sidebarDivider.ZIndex = 5
-    sidebarDivider.Parent = W.Sidebar.Parent
+    sidebarDivider.Parent = W.Main.Parent
 
     W.Content = Instance.new("Frame")
     W.Content.Size = UDim2.new(1, -140, 1, -48)
