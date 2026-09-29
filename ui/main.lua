@@ -22,7 +22,6 @@ function UI.Build(Hub)
     local W = Window.Create(Hub)
 
     local cfgBtn = Instance.new("TextButton")
-    cfgBtn.Name = "CfgButton"
     cfgBtn.Size = UDim2.new(0, 50, 0, 28)
     cfgBtn.Position = UDim2.new(1, -148, 0, 10)
     cfgBtn.BackgroundColor3 = T.Panel
@@ -50,12 +49,6 @@ function UI.Build(Hub)
 
     cfgBtn.MouseButton1Click:Connect(function()
         if cw then cw.Toggle() end
-    end)
-    cfgBtn.MouseEnter:Connect(function()
-        cfgStroke.Color = T.Accent
-    end)
-    cfgBtn.MouseLeave:Connect(function()
-        cfgStroke.Color = T.AccentDim
     end)
 
     local TabsM = Tabs.Create(Hub, W)
@@ -91,11 +84,7 @@ function UI.Build(Hub)
     local wmods = Module.Create(Hub, W, combatTab, "Weapon Mods")
     wmods.OnToggle = function(v)
         if Hub.Features.WeaponMods then
-            if v then
-                Hub.Features.WeaponMods.EnsureHooks()
-            else
-                Hub.Features.WeaponMods.Disable()
-            end
+            if v then Hub.Features.WeaponMods.EnsureHooks() else Hub.Features.WeaponMods.Disable() end
         end
     end
     Toggle(Hub, W, wmods, "No Recoil", false, function(v)
@@ -139,6 +128,19 @@ function UI.Build(Hub)
     Toggle(Hub, W, esp, "Tracer Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
     Slider(Hub, W, esp, "Render Distance", 250, 5000, 2000, function(v)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
+    end)
+
+    local gESp = Module.Create(Hub, W, visualsTab, "Grenade ESP")
+    gESp.OnToggle = function(v)
+    end
+    Toggle(Hub, W, gESp, "Tracers", false, function(v)
+        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.Tracers = v end
+    end)
+    ColorPicker(Hub, W, gESp, "Tracer Color", Color3.fromRGB(255, 100, 0), function(c)
+        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.TracerColor = c end
+    end)
+    Toggle(Hub, W, gESp, "Flight Trail", false, function(v)
+        if Hub.Features.GrenadeESP then Hub.Features.GrenadeESP.FlightTrail = v end
     end)
 
     local chams = Module.Create(Hub, W, visualsTab, "Chams")
@@ -194,6 +196,29 @@ function UI.Build(Hub)
         if Hub.Features.TimeChanger then Hub.Features.TimeChanger.Set(v) end
     end)
 
+    local weatherMod = Module.Create(Hub, W, visualsTab, "Weather")
+    weatherMod.OnToggle = function(v)
+        if Hub.Features.Weather then
+            if v then Hub.Features.Weather.Set("Rain") else Hub.Features.Weather.Set("None") end
+        end
+    end
+    Dropdown(Hub, W, weatherMod, "Mode", {"None", "Rain", "Snow", "Hell Fire"}, "Rain", function(v)
+        if Hub.Features.Weather then Hub.Features.Weather.Set(v) end
+    end)
+
+    local outdoorMod = Module.Create(Hub, W, visualsTab, "Outdoor Color")
+    outdoorMod.OnToggle = function(v)
+        if Hub.Features.OutdoorColor then
+            if v then Hub.Features.OutdoorColor.Enable() else Hub.Features.OutdoorColor.Disable() end
+        end
+    end
+    ColorPicker(Hub, W, outdoorMod, "Ambient", Color3.fromRGB(127, 127, 127), function(c)
+        if Hub.Features.OutdoorColor then Hub.Features.OutdoorColor.SetAmbient(c) end
+    end)
+    ColorPicker(Hub, W, outdoorMod, "Outdoor", Color3.fromRGB(127, 127, 127), function(c)
+        if Hub.Features.OutdoorColor then Hub.Features.OutdoorColor.SetOutdoor(c) end
+    end)
+
     local fogMod = Module.Create(Hub, W, visualsTab, "Fog")
     fogMod.OnToggle = function(v)
         if Hub.Features.Fog then
@@ -206,17 +231,8 @@ function UI.Build(Hub)
     Slider(Hub, W, fogMod, "Haze", 0, 100, 30, function(v)
         if Hub.Features.Fog then Hub.Features.Fog.SetHaze(v / 10) end
     end)
-    Slider(Hub, W, fogMod, "Glare", 0, 100, 0, function(v)
-        if Hub.Features.Fog then Hub.Features.Fog.SetGlare(v / 100) end
-    end)
-    Slider(Hub, W, fogMod, "Offset", 0, 100, 0, function(v)
-        if Hub.Features.Fog then Hub.Features.Fog.SetOffset(v / 100) end
-    end)
     ColorPicker(Hub, W, fogMod, "Color", Color3.fromRGB(200, 200, 200), function(c)
         if Hub.Features.Fog then Hub.Features.Fog.SetColor(c) end
-    end)
-    ColorPicker(Hub, W, fogMod, "Decay", Color3.fromRGB(106, 112, 125), function(c)
-        if Hub.Features.Fog then Hub.Features.Fog.SetDecay(c) end
     end)
 
     local ccMod = Module.Create(Hub, W, visualsTab, "Color Correction")
@@ -233,9 +249,6 @@ function UI.Build(Hub)
     end)
     Slider(Hub, W, ccMod, "Saturation", 0, 200, 100, function(v)
         if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetSaturation((v - 100) / 100) end
-    end)
-    ColorPicker(Hub, W, ccMod, "Tint", Color3.fromRGB(255, 255, 255), function(c)
-        if Hub.Features.ColorCorrection then Hub.Features.ColorCorrection.SetTint(c) end
     end)
 
     local skinsTab = TabsM.Create("Skins")
@@ -261,6 +274,19 @@ function UI.Build(Hub)
 
     local miscTab = TabsM.Create("Misc")
 
+    local bhopMod = Module.Create(Hub, W, miscTab, "Bunny Hop")
+    bhopMod.OnToggle = function(v)
+        if Hub.Features.Movement then Hub.Features.Movement.AutoBhop = v end
+    end
+    Slider(Hub, W, bhopMod, "Speed", 5, 30, 18, function(v)
+        if Hub.Features.Movement then Hub.Features.Movement.BhopSpeed = v end
+    end)
+
+    local nfdMod = Module.Create(Hub, W, miscTab, "No Fall Damage")
+    nfdMod.OnToggle = function(v)
+        if Hub.Features.Movement then Hub.Features.Movement.NoFallDamage = v end
+    end
+
     local rejoinMod = Module.Create(Hub, W, miscTab, "Rejoin")
     Button(Hub, W, rejoinMod, "Rejoin Now", function()
         if Hub.Features.Rejoin then Hub.Features.Rejoin.DoRejoin() end
@@ -275,18 +301,8 @@ function UI.Build(Hub)
     Slider(Hub, W, afkMod, "Interval (sec)", 1, 20, 5, function(v)
         if Hub.Features.AntiAFK then Hub.Features.AntiAFK.Interval = v end
     end)
-    Toggle(Hub, W, afkMod, "Rotate Head", true, function(v)
-        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoRotate = v end
-    end)
-    Toggle(Hub, W, afkMod, "Jump", false, function(v)
-        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoJump = v end
-    end)
-    Toggle(Hub, W, afkMod, "Click", true, function(v)
-        if Hub.Features.AntiAFK then Hub.Features.AntiAFK.DoClick = v end
-    end)
 
     local spacer = Instance.new("Frame")
-    spacer.Name = "ScrollSpacer"
     spacer.Size = UDim2.new(1, -6, 0, 60)
     spacer.BackgroundTransparency = 1
     spacer.BorderSizePixel = 0
