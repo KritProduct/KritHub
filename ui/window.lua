@@ -49,7 +49,7 @@ function Window.Create(Hub)
     topLineGrad.Parent = topLine
 
     W.Header = Instance.new("Frame")
-    W.Header.Size = UDim2.new(1, 0, 0, 46)
+    W.Header.Size = UDim2.new(1, 0, 0, 48)
     W.Header.BackgroundColor3 = T.Background
     W.Header.BorderSizePixel = 0
     W.Header.ZIndex = 2
@@ -78,14 +78,13 @@ function Window.Create(Hub)
 
     local logo = Instance.new("Frame")
     logo.Size = UDim2.new(0, 22, 0, 22)
-    logo.Position = UDim2.new(0, 16, 0.5, -11)
+    logo.Position = UDim2.new(0, 18, 0.5, -11)
     logo.BackgroundTransparency = 1
     logo.ZIndex = 4
     logo.Parent = W.Header
 
     local logoDiamond = Instance.new("Frame")
     logoDiamond.Size = UDim2.new(1, 0, 1, 0)
-    logoDiamond.Position = UDim2.new(0, 0, 0, 0)
     logoDiamond.BackgroundColor3 = T.Background
     logoDiamond.BorderSizePixel = 0
     logoDiamond.Rotation = 45
@@ -106,10 +105,10 @@ function Window.Create(Hub)
     logoDot.Parent = logo
 
     W.Brand = Instance.new("TextLabel")
-    W.Brand.Size = UDim2.new(0, 200, 1, 0)
-    W.Brand.Position = UDim2.new(0, 48, 0, 0)
+    W.Brand.Size = UDim2.new(0, 100, 1, 0)
+    W.Brand.Position = UDim2.new(0, 52, 0, 0)
     W.Brand.BackgroundTransparency = 1
-    W.Brand.Text = "KRITHUB"
+    W.Brand.Text = "KRIT"
     W.Brand.TextColor3 = T.TextHi
     W.Brand.Font = Enum.Font.GothamBold
     W.Brand.TextSize = 17
@@ -118,8 +117,8 @@ function Window.Create(Hub)
     W.Brand.Parent = W.Header
 
     local brandAccent = Instance.new("TextLabel")
-    brandAccent.Size = UDim2.new(0, 60, 1, 0)
-    brandAccent.Position = UDim2.new(0, 118, 0, 0)
+    brandAccent.Size = UDim2.new(0, 100, 1, 0)
+    brandAccent.Position = UDim2.new(0, 86, 0, 0)
     brandAccent.BackgroundTransparency = 1
     brandAccent.Text = "HUB"
     brandAccent.TextColor3 = T.Accent
@@ -129,38 +128,43 @@ function Window.Create(Hub)
     brandAccent.ZIndex = 4
     brandAccent.Parent = W.Header
 
-    W.Version = Instance.new("TextLabel")
-    W.Version.Size = UDim2.new(0, 60, 1, 0)
-    W.Version.Position = UDim2.new(0, 160, 0, 0)
-    W.Version.BackgroundTransparency = 1
-    W.Version.Text = "v1.0"
-    W.Version.TextColor3 = T.TextMuted
-    W.Version.Font = Enum.Font.Code
-    W.Version.TextSize = 11
-    W.Version.TextXAlignment = Enum.TextXAlignment.Left
-    W.Version.ZIndex = 4
-    W.Version.Parent = W.Header
+    local version = Instance.new("TextLabel")
+    version.Size = UDim2.new(0, 60, 1, 0)
+    version.Position = UDim2.new(0, 128, 0, 2)
+    version.BackgroundTransparency = 1
+    version.Text = "v1.0"
+    version.TextColor3 = T.TextMuted
+    version.Font = Enum.Font.Code
+    version.TextSize = 11
+    version.TextXAlignment = Enum.TextXAlignment.Left
+    version.ZIndex = 4
+    version.Parent = W.Header
 
     W.MinBtn = Instance.new("TextButton")
     W.MinBtn.Size = UDim2.new(0, 28, 0, 28)
-    W.MinBtn.Position = UDim2.new(1, -100, 0, 9)
-    W.MinBtn.BackgroundColor3 = T.Item
+    W.MinBtn.Position = UDim2.new(1, -100, 0, 10)
+    W.MinBtn.BackgroundColor3 = T.Panel
     W.MinBtn.BorderSizePixel = 0
-    W.MinBtn.Text = "—"
+    W.MinBtn.Text = "-"
     W.MinBtn.TextColor3 = T.TextDim
     W.MinBtn.Font = Enum.Font.GothamBold
-    W.MinBtn.TextSize = 16
+    W.MinBtn.TextSize = 18
     W.MinBtn.ZIndex = 4
     W.MinBtn.AutoButtonColor = false
     W.MinBtn.Parent = W.Header
     U.Corner(W.MinBtn, UDim.new(0, 2))
 
+    local minStroke = Instance.new("UIStroke")
+    minStroke.Color = T.Border2
+    minStroke.Thickness = 1
+    minStroke.Parent = W.MinBtn
+
     W.CloseBtn = Instance.new("TextButton")
     W.CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-    W.CloseBtn.Position = UDim2.new(1, -66, 0, 9)
-    W.CloseBtn.BackgroundColor3 = T.Item
+    W.CloseBtn.Position = UDim2.new(1, -66, 0, 10)
+    W.CloseBtn.BackgroundColor3 = T.Panel
     W.CloseBtn.BorderSizePixel = 0
-    W.CloseBtn.Text = "✕"
+    W.CloseBtn.Text = "X"
     W.CloseBtn.TextColor3 = T.TextDim
     W.CloseBtn.Font = Enum.Font.GothamBold
     W.CloseBtn.TextSize = 14
@@ -169,9 +173,14 @@ function Window.Create(Hub)
     W.CloseBtn.Parent = W.Header
     U.Corner(W.CloseBtn, UDim.new(0, 2))
 
+    local closeStroke = Instance.new("UIStroke")
+    closeStroke.Color = T.Border2
+    closeStroke.Thickness = 1
+    closeStroke.Parent = W.CloseBtn
+
     W.Sidebar = Instance.new("Frame")
-    W.Sidebar.Size = UDim2.new(0, 140, 1, -46)
-    W.Sidebar.Position = UDim2.new(0, 0, 0, 46)
+    W.Sidebar.Size = UDim2.new(0, 140, 1, -48)
+    W.Sidebar.Position = UDim2.new(0, 0, 0, 48)
     W.Sidebar.BackgroundColor3 = Color3.fromRGB(5, 5, 8)
     W.Sidebar.BorderSizePixel = 0
     W.Sidebar.ZIndex = 2
@@ -192,8 +201,8 @@ function Window.Create(Hub)
     sidebarLine.Parent = W.Sidebar
 
     W.Content = Instance.new("Frame")
-    W.Content.Size = UDim2.new(1, -140, 1, -46)
-    W.Content.Position = UDim2.new(0, 140, 0, 46)
+    W.Content.Size = UDim2.new(1, -140, 1, -48)
+    W.Content.Position = UDim2.new(0, 140, 0, 48)
     W.Content.BackgroundColor3 = T.Settings
     W.Content.BorderSizePixel = 0
     W.Content.ClipsDescendants = true
@@ -247,16 +256,20 @@ function Window.Create(Hub)
     end)
 
     W.MinBtn.MouseEnter:Connect(function()
-        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.ItemHover, TextColor3 = T.Accent}):Play()
+        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.ItemHover}):Play()
+        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {TextColor3 = T.Accent}):Play()
     end)
     W.MinBtn.MouseLeave:Connect(function()
-        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Item, TextColor3 = T.TextDim}):Play()
+        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Panel}):Play()
+        TweenService:Create(W.MinBtn, TweenInfo.new(0.12), {TextColor3 = T.TextDim}):Play()
     end)
     W.CloseBtn.MouseEnter:Connect(function()
-        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Red, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Red}):Play()
+        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
     end)
     W.CloseBtn.MouseLeave:Connect(function()
-        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Item, TextColor3 = T.TextDim}):Play()
+        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {BackgroundColor3 = T.Panel}):Play()
+        TweenService:Create(W.CloseBtn, TweenInfo.new(0.12), {TextColor3 = T.TextDim}):Play()
     end)
 
     function W.Pulse(btn)
@@ -323,9 +336,9 @@ function Window.Create(Hub)
 
     W.MinBtn.MouseButton1Click:Connect(function()
         W.Pulse(W.MinBtn)
-        if W.Main.Size.Y.Offset > 46 then
+        if W.Main.Size.Y.Offset > 48 then
             TweenService:Create(W.Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 780, 0, 46)
+                Size = UDim2.new(0, 780, 0, 48)
             }):Play()
         else
             TweenService:Create(W.Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
