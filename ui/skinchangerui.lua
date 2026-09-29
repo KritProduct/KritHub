@@ -270,9 +270,13 @@ function SkinChangerUI.Build(Hub, W, tab)
 
             btn.MouseButton1Click:Connect(function()
                 UI.SelectedSkin = skin.Name
+                SC.SelectedSkin = skin.Name
+                SC.SelectedWeapon = UI.CurrentWeapon
+                SC.Enabled = true
                 selectedLabel.Text = "SELECTED: " .. string.upper(skin.Name)
                 highlightSkin(skin.Name)
-                print("[SkinUI] selected:", skin.Name)
+                SC.Apply(UI.CurrentWeapon, skin.Name, 0)
+                print("[SkinUI] selected + applied:", UI.CurrentWeapon, "->", skin.Name)
             end)
 
             table.insert(UI.SkinButtons, btn)
@@ -293,6 +297,19 @@ function SkinChangerUI.Build(Hub, W, tab)
         end
 
         UI.CurrentWeapon = weapons[UI.WeaponIndex]
+
+        if SC.SelectedWeapon == UI.CurrentWeapon then
+            UI.SelectedSkin = SC.SelectedSkin
+        else
+            UI.SelectedSkin = nil
+        end
+
+        if UI.SelectedSkin then
+            selectedLabel.Text = "SELECTED: " .. string.upper(UI.SelectedSkin)
+        else
+            selectedLabel.Text = "SELECTED: NONE"
+        end
+
         updateViewportModel()
         refreshSkins()
     end
@@ -301,28 +318,38 @@ function SkinChangerUI.Build(Hub, W, tab)
     UI.UpdateWeaponList = updateWeaponList
 
     SC.OnApply = function(weaponName, skinName)
-        UI.SelectedSkin = skinName
-        selectedLabel.Text = "SELECTED: " .. string.upper(skinName)
-        highlightSkin(skinName)
+        if weaponName == UI.CurrentWeapon then
+            UI.SelectedSkin = skinName
+            selectedLabel.Text = "SELECTED: " .. string.upper(skinName)
+            highlightSkin(skinName)
+        end
     end
 
-    leftArrow.MouseButton1Click:Connect(function()
+    local function changeWeapon(delta)
         if not UI.Weapons or #UI.Weapons == 0 then return end
-        UI.WeaponIndex = UI.WeaponIndex - 1
+        UI.WeaponIndex = UI.WeaponIndex + delta
         if UI.WeaponIndex < 1 then UI.WeaponIndex = #UI.Weapons end
-        UI.CurrentWeapon = UI.Weapons[UI.WeaponIndex]
-        updateViewportModel()
-        refreshSkins()
-    end)
-
-    rightArrow.MouseButton1Click:Connect(function()
-        if not UI.Weapons or #UI.Weapons == 0 then return end
-        UI.WeaponIndex = UI.WeaponIndex + 1
         if UI.WeaponIndex > #UI.Weapons then UI.WeaponIndex = 1 end
         UI.CurrentWeapon = UI.Weapons[UI.WeaponIndex]
+
+        if SC.SelectedWeapon == UI.CurrentWeapon then
+            UI.SelectedSkin = SC.SelectedSkin
+        else
+            UI.SelectedSkin = nil
+        end
+
+        if UI.SelectedSkin then
+            selectedLabel.Text = "SELECTED: " .. string.upper(UI.SelectedSkin)
+        else
+            selectedLabel.Text = "SELECTED: NONE"
+        end
+
         updateViewportModel()
         refreshSkins()
-    end)
+    end
+
+    leftArrow.MouseButton1Click:Connect(function() changeWeapon(-1) end)
+    rightArrow.MouseButton1Click:Connect(function() changeWeapon(1) end)
 
     applyBtn.MouseButton1Click:Connect(function()
         if not UI.CurrentWeapon or not UI.SelectedSkin then
