@@ -65,6 +65,9 @@ function UI.Build(Hub)
     Toggle(Hub, W, aim, "Draw FOV Circle", false, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.DrawFOV = v end
     end)
+    ColorPicker(Hub, W, aim, "FOV Circle Color", Color3.fromRGB(255, 255, 255), function(c)
+        if Hub.Features.Aimbot then Hub.Features.Aimbot.FOVColor = c end
+    end)
     Toggle(Hub, W, aim, "Wall Check", false, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.WallCheck = v end
     end)
@@ -127,6 +130,7 @@ function UI.Build(Hub)
     Toggle(Hub, W, esp, "Show Distance", true, function(v) if Hub.Features.ESP then Hub.Features.ESP.Distance = v end end)
     Toggle(Hub, W, esp, "Tracer Line", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Line = v end end)
     Toggle(Hub, W, esp, "Display Name", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.UseDisplayName = v end end)
+    Toggle(Hub, W, esp, "Weapon ESP", false, function(v) if Hub.Features.ESP then Hub.Features.ESP.Weapon = v end end)
     Slider(Hub, W, esp, "Render Distance", 250, 5000, 2000, function(v)
         if Hub.Features.ESP then Hub.Features.ESP.MaxDist = v end
     end)
@@ -137,11 +141,36 @@ function UI.Build(Hub)
             if v then Hub.Features.VisualsPlayers.EnableChams() else Hub.Features.VisualsPlayers.DisableChams() end
         end
     end
+    Dropdown(Hub, W, chams, "Mode", {"Highlight", "ForceField", "Neon", "Glass"}, "Highlight", function(v)
+        if Hub.Features.VisualsPlayers then
+            Hub.Features.VisualsPlayers.ChamsMode = v
+            Hub.Features.VisualsPlayers.RebuildChams()
+        end
+    end)
     Toggle(Hub, W, chams, "Through Walls", true, function(v)
         if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.ChamsThroughWalls = v end
     end)
     Slider(Hub, W, chams, "Fill Opacity", 0, 100, 50, function(v)
         if Hub.Features.VisualsPlayers then Hub.Features.VisualsPlayers.ChamsFillTransparency = 1 - (v / 100) end
+    end)
+
+    local wchams = Module.Create(Hub, W, visualsTab, "Weapon Chams")
+    wchams.OnToggle = function(v)
+        if Hub.Features.WeaponChams then
+            if v then Hub.Features.WeaponChams.Enable() else Hub.Features.WeaponChams.Disable() end
+        end
+    end
+    Dropdown(Hub, W, wchams, "Mode", {"Glass", "ForceField", "Metal", "Neon", "Highlight"}, "Glass", function(v)
+        if Hub.Features.WeaponChams then Hub.Features.WeaponChams.SetMode(v) end
+    end)
+    ColorPicker(Hub, W, wchams, "Color", Color3.fromRGB(0, 150, 255), function(c)
+        if Hub.Features.WeaponChams then Hub.Features.WeaponChams.SetColor(c) end
+    end)
+    Slider(Hub, W, wchams, "Transparency", 0, 100, 40, function(v)
+        if Hub.Features.WeaponChams then Hub.Features.WeaponChams.SetTransparency(v / 100) end
+    end)
+    Slider(Hub, W, wchams, "Reflectance", 0, 100, 100, function(v)
+        if Hub.Features.WeaponChams then Hub.Features.WeaponChams.SetReflectance(v / 100) end
     end)
 
     local skel = Module.Create(Hub, W, visualsTab, "Skeleton ESP")
@@ -165,6 +194,16 @@ function UI.Build(Hub)
     end)
     Button(Hub, W, xray, "Refresh Walls", function()
         if Hub.Features.Xray then Hub.Features.Xray.Refresh() end
+    end)
+
+    local fovMod = Module.Create(Hub, W, visualsTab, "Custom FOV")
+    fovMod.OnToggle = function(v)
+        if Hub.Features.CustomFOV then
+            if v then Hub.Features.CustomFOV.Enable() else Hub.Features.CustomFOV.Disable() end
+        end
+    end
+    Slider(Hub, W, fovMod, "FOV", 70, 120, 90, function(v)
+        if Hub.Features.CustomFOV then Hub.Features.CustomFOV.Set(v) end
     end)
 
     local afMod = Module.Create(Hub, W, visualsTab, "Anti Flash")

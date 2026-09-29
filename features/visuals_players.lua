@@ -6,6 +6,7 @@ return function(Hub)
 
     local Visuals = {}
     Visuals.ChamsEnabled = false
+    Visuals.ChamsMode = "Highlight"
     Visuals.ChamsThroughWalls = true
     Visuals.ChamsColorEnemy = Color3.fromRGB(255, 60, 60)
     Visuals.ChamsColorFriend = Color3.fromRGB(60, 255, 60)
@@ -46,10 +47,20 @@ return function(Hub)
         return GetTeam(me)
     end
 
-    local function DestroyHighlight(ch)
-        local h = chamsCache[ch]
-        if h then
-            pcall(function() h:Destroy() end)
+    local function DestroyChams(ch)
+        local data = chamsCache[ch]
+        if not data then return end
+        if data.highlight then pcall(function() data.highlight:Destroy() end) end
+        if data.parts then
+            for part, info in pairs(data.parts) do
+                pcall(function()
+                    if part and part.Parent then
+                        part.Material = info.Material
+                        part.Color = info.Color
+                        part.Transparency = info.Transparency
+                    end
+                end)
+            end
         end
         chamsCache[ch] = nil
     end
@@ -64,8 +75,34 @@ return function(Hub)
         h.DepthMode = Visuals.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
         h.Adornee = ch
         h.Parent = ch
-        chamsCache[ch] = h
         return h
+    end
+
+    local function ApplyPartMode(ch, color)
+        local parts = {}
+        for _, d in ipairs(ch:GetDescendants()) do
+            if d:IsA("BasePart") then
+                parts[d] = {
+                    Material = d.Material,
+                    Color = d.Color,
+                    Transparency = d.Transparency,
+                }
+                if Visuals.ChamsMode == "ForceField" then
+                    d.Material = Enum.Material.ForceField
+                    d.Color = color
+                    d.Transparency = 0
+                elseif Visuals.ChamsMode == "Neon" then
+                    d.Material = Enum.Material.Neon
+                    d.Color = color
+                    d.Transparency = 0
+                elseif Visuals.ChamsMode == "Glass" then
+                    d.Material = Enum.Material.Glass
+                    d.Color = color
+                    d.Transparency = Visuals.ChamsFillTransparency
+                end
+            end
+        end
+        return parts
     end
 
     local function RebuildAllChams()
@@ -74,7 +111,6 @@ return function(Hub)
 
         local myChar = LocalPlayer.Character
         local myTeam = GetMyTeam()
-
         local validChars = {}
 
         for _, ch in ipairs(folder:GetChildren()) do
@@ -89,24 +125,35 @@ return function(Hub)
 
                 local color = isFriend and Visuals.ChamsColorFriend or Visuals.ChamsColorEnemy
 
-                DestroyHighlight(ch)
+                local existing = chamsCache[ch]
+                local modeMismatch = existing and existing.mode ~= Visuals.ChamsMode
+                if existing then DestroyChams(ch) end
 
-                local ok = pcall(function()
-                    CreateHighlight(ch, color)
-                end)
+                if Visuals.ChamsMode == "Highlight" then
+                    local ok = pcall(function()
+                        chamsCache[ch] = { mode = "Highlight", highlight = CreateHighlight(ch, color) }
+                    end)
+                else
+                    local ok, parts = pcall(function()
+                        return ApplyPartMode(ch, color)
+                    end)
+                    if ok then
+                        chamsCache[ch] = { mode = Visuals.ChamsMode, parts = parts }
+                    end
+                end
             end
         end
 
         for ch, _ in pairs(chamsCache) do
             if not validChars[ch] or not ch.Parent then
-                DestroyHighlight(ch)
+                DestroyChams(ch)
             end
         end
     end
 
     local function ClearAllChams()
         for ch, _ in pairs(chamsCache) do
-            DestroyHighlight(ch)
+            DestroyChams(ch)
         end
     end
 

@@ -12,11 +12,12 @@ return function(Hub)
     Aimbot.WallCheck = false
     Aimbot.FriendCheck = true
     Aimbot.DrawFOV = false
+    Aimbot.FOVColor = Color3.fromRGB(255, 255, 255)
     Aimbot.Bind = Enum.KeyCode.E
 
     local FOVCircle = Drawing.new("Circle")
     FOVCircle.Thickness = 2
-    FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+    FOVCircle.Color = Aimbot.FOVColor
     FOVCircle.Transparency = 1
     FOVCircle.Filled = false
     FOVCircle.Radius = Aimbot.FOV
@@ -107,21 +108,10 @@ return function(Hub)
             local dir = targetPos - origin
             local ray = workspace:Raycast(origin, dir, params)
 
-            if ray == nil then
-                return true
-            end
-
-            if ray.Instance == head then
-                return true
-            end
-
-            if ray.Instance == targetPart then
-                return true
-            end
-
-            if IsBlocking(ray.Instance) then
-                return false
-            end
+            if ray == nil then return true end
+            if ray.Instance == head then return true end
+            if ray.Instance == targetPart then return true end
+            if IsBlocking(ray.Instance) then return false end
 
             table.insert(ignore, ray.Instance)
         end
@@ -184,9 +174,10 @@ return function(Hub)
             end
         end
 
-        if Aimbot.Enabled and Aimbot.DrawFOV then
+        if Aimbot.DrawFOV then
             FOVCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
             FOVCircle.Radius = Aimbot.FOV
+            FOVCircle.Color = Aimbot.FOVColor
             FOVCircle.Visible = true
         else
             FOVCircle.Visible = false

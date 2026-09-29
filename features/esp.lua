@@ -14,11 +14,14 @@ return function(Hub)
     ESP.Dot = false
     ESP.TeamOnly = false
     ESP.UseDisplayName = false
+    ESP.Weapon = false
     ESP.MaxDist = 2000
     ESP.EnemyColor = Color3.fromRGB(255, 60, 60)
     ESP.FriendColor = Color3.fromRGB(60, 255, 60)
 
     local cache = {}
+    local weaponAttrCache = {}
+    local weaponNameCache = {}
 
     local function GetFolder()
         return workspace:FindFirstChild("Characters")
@@ -48,12 +51,28 @@ return function(Hub)
     local function GetDisplayName(ch)
         local plr = Players:GetPlayerFromCharacter(ch)
         if plr then
-            if ESP.UseDisplayName then
-                return plr.DisplayName
-            end
+            if ESP.UseDisplayName then return plr.DisplayName end
             return plr.Name
         end
         return ch.Name
+    end
+
+    local function GetWeaponName(ch)
+        local plr = Players:GetPlayerFromCharacter(ch)
+        if not plr then return "None" end
+        local attr = plr:GetAttribute("CurrentEquipped")
+        if attr ~= weaponAttrCache[plr] then
+            weaponAttrCache[plr] = attr
+            if attr then
+                local ok, dec = pcall(function()
+                    return game:GetService("HttpService"):JSONDecode(attr)
+                end)
+                weaponNameCache[plr] = (ok and dec and dec.Name) or "None"
+            else
+                weaponNameCache[plr] = "None"
+            end
+        end
+        return weaponNameCache[plr] or "None"
     end
 
     local function Create(ch)
@@ -98,6 +117,12 @@ return function(Hub)
         d.Dot.Radius = 3
         d.Dot.Filled = true
         d.Dot.Visible = false
+
+        d.Weapon = Drawing.new("Text")
+        d.Weapon.Size = 13
+        d.Weapon.Center = true
+        d.Weapon.Outline = true
+        d.Weapon.Visible = false
 
         cache[ch] = d
         return d
@@ -250,6 +275,15 @@ return function(Hub)
                                 d.Dot.Visible = true
                             else
                                 d.Dot.Visible = false
+                            end
+
+                            if ESP.Weapon then
+                                d.Weapon.Text = "[" .. GetWeaponName(ch) .. "]"
+                                d.Weapon.Color = Color3.fromRGB(255, 255, 255)
+                                d.Weapon.Position = tl + Vector2.new(size.X / 2, size.Y + 18)
+                                d.Weapon.Visible = true
+                            else
+                                d.Weapon.Visible = false
                             end
                         else
                             HideAll(d)
