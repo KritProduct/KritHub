@@ -103,6 +103,7 @@ return function(Hub, W, module, text, options, default, callback)
             if opt == v then
                 index = i
                 state = v
+                el.Value = v
                 btn.Text = string.upper(tostring(v))
                 if not silent and callback then callback(v) end
                 return
