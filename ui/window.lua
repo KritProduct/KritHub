@@ -200,15 +200,6 @@ function Window.Create(Hub)
     sidebarPadding.PaddingRight = UDim.new(0, 6)
     sidebarPadding.Parent = W.Sidebar
 
-    local sidebarDivider = Instance.new("Frame")
-    sidebarDivider.Name = "SidebarDivider"
-    sidebarDivider.Size = UDim2.new(0, 1, 1, -48)
-    sidebarDivider.Position = UDim2.new(0, 139, 0, 48)
-    sidebarDivider.BackgroundColor3 = T.Border
-    sidebarDivider.BorderSizePixel = 0
-    sidebarDivider.ZIndex = 5
-    sidebarDivider.Parent = W.Main.Parent
-
     W.Content = Instance.new("Frame")
     W.Content.Size = UDim2.new(1, -140, 1, -48)
     W.Content.Position = UDim2.new(0, 140, 0, 48)
@@ -217,6 +208,14 @@ function Window.Create(Hub)
     W.Content.ClipsDescendants = true
     W.Content.ZIndex = 2
     W.Content.Parent = W.Main
+
+    local contentBorder = Instance.new("Frame")
+    contentBorder.Size = UDim2.new(0, 1, 1, 0)
+    contentBorder.Position = UDim2.new(0, 0, 0, 0)
+    contentBorder.BackgroundColor3 = T.Border
+    contentBorder.BorderSizePixel = 0
+    contentBorder.ZIndex = 3
+    contentBorder.Parent = W.Content
 
     W.ContentScroll = Instance.new("ScrollingFrame")
     W.ContentScroll.Size = UDim2.new(1, -20, 1, -20)
