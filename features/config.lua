@@ -150,16 +150,16 @@ return function(Hub)
                         local el = mod:GetElement(elName)
                         if el and el.Set then
                             if type(val) == "table" and val._type == "Color3" then
-                                pcall(function() el:Set(Color3.new(val.R, val.G, val.B), true) end)
+                                pcall(function() el:Set(Color3.new(val.R, val.G, val.B), false) end)
                             else
-                                pcall(function() el:Set(val, true) end)
+                                pcall(function() el:Set(val, false) end)
                             end
                         end
                     end
                 end
 
                 if modData.Enabled ~= nil and mod.SetEnabled then
-                    pcall(function() mod.SetEnabled(modData.Enabled, true) end)
+                    pcall(function() mod.SetEnabled(modData.Enabled, false) end)
                 end
             end
         end
