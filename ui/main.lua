@@ -121,6 +121,39 @@ function UI.Build(Hub)
     Toggle(Hub, W, wmods, "No Spread", false, function(v)
         if Hub.Features.WeaponMods then Hub.Features.WeaponMods.SetNoSpread(v) end
     end)
+    Toggle(Hub, W, wmods, "Instant Reload", false, function(v)
+        if Hub.Features.WeaponMods then Hub.Features.WeaponMods.SetInstantReload(v) end
+    end)
+    Slider(Hub, W, wmods, "Reload Speed", 50, 300, 199, function(v)
+        if Hub.Features.WeaponMods then Hub.Features.WeaponMods.SetReloadSpeed(v) end
+    end)
+
+    local tracers = Module.Create(Hub, W, combatTab, "Bullet Tracers")
+    tracers.OnToggle = function(v)
+        if Hub.Features.BulletTracers then
+            if v then Hub.Features.BulletTracers.Enable() else Hub.Features.BulletTracers.Disable() end
+        end
+    end
+    Dropdown(Hub, W, tracers, "Style", {"Block", "Cylinder"}, "Block", function(v)
+        if Hub.Features.BulletTracers then Hub.Features.BulletTracers.Style = v end
+    end)
+    ColorPicker(Hub, W, tracers, "Color", Color3.fromRGB(0, 170, 255), function(c)
+        if Hub.Features.BulletTracers then Hub.Features.BulletTracers.Color = c end
+    end)
+    Toggle(Hub, W, tracers, "Rainbow", false, function(v)
+        if Hub.Features.BulletTracers then Hub.Features.BulletTracers.Rainbow = v end
+    end)
+    Slider(Hub, W, tracers, "Lifetime", 1, 100, 20, function(v)
+        if Hub.Features.BulletTracers then Hub.Features.BulletTracers.Lifetime = v / 10 end
+    end)
+    Toggle(Hub, W, tracers, "Bullet Impacts", false, function(v)
+        if Hub.Features.BulletTracers then
+            if v then Hub.Features.BulletTracers.EnableImpacts() else Hub.Features.BulletTracers.DisableImpacts() end
+        end
+    end)
+    ColorPicker(Hub, W, tracers, "Impact Color", Color3.fromRGB(255, 0, 0), function(c)
+        if Hub.Features.BulletTracers then Hub.Features.BulletTracers.ImpactColor = c end
+    end)
 
     local trig = Module.Create(Hub, W, combatTab, "Trigger Bot")
     trig.OnToggle = function(v)
@@ -198,6 +231,34 @@ function UI.Build(Hub)
         if Hub.Features.WeaponChams then Hub.Features.WeaponChams.SetReflectance(v / 100) end
     end)
 
+    local hands = Module.Create(Hub, W, visualsTab, "Custom Hands")
+    hands.OnToggle = function(v)
+        if Hub.Features.CustomHands then
+            if v then Hub.Features.CustomHands.Enable() else Hub.Features.CustomHands.Disable() end
+        end
+    end
+    Dropdown(Hub, W, hands, "Target", {"Arms", "Weapon", "Both"}, "Both", function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetTarget(v) end
+    end)
+    Dropdown(Hub, W, hands, "Visual", {"None", "Neon", "Transparency", "Highlight", "Rainbow"}, "None", function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetMode(v) end
+    end)
+    ColorPicker(Hub, W, hands, "Neon/Rainbow Color", Color3.fromRGB(0, 150, 255), function(c)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetNeonColor(c) end
+    end)
+    Slider(Hub, W, hands, "Glass Transparency", 0, 100, 40, function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetGlassTransparency(v / 100) end
+    end)
+    Slider(Hub, W, hands, "Position X", -200, 200, 20, function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetPos(v / 100, Hub.Features.CustomHands.PositionY, Hub.Features.CustomHands.PositionZ) end
+    end)
+    Slider(Hub, W, hands, "Position Y", -200, 200, -15, function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetPos(Hub.Features.CustomHands.PositionX, v / 100, Hub.Features.CustomHands.PositionZ) end
+    end)
+    Slider(Hub, W, hands, "Position Z", -200, 200, 7, function(v)
+        if Hub.Features.CustomHands then Hub.Features.CustomHands.SetPos(Hub.Features.CustomHands.PositionX, Hub.Features.CustomHands.PositionY, v / 100) end
+    end)
+
     local skel = Module.Create(Hub, W, visualsTab, "Skeleton ESP")
     skel.OnToggle = function(v)
         if Hub.Features.VisualsPlayers then
@@ -229,6 +290,16 @@ function UI.Build(Hub)
     end
     Slider(Hub, W, fovMod, "FOV", 70, 120, 90, function(v)
         if Hub.Features.CustomFOV then Hub.Features.CustomFOV.Set(v) end
+    end)
+
+    local tpMod = Module.Create(Hub, W, visualsTab, "Third Person")
+    tpMod.OnToggle = function(v)
+        if Hub.Features.ThirdPerson then
+            if v then Hub.Features.ThirdPerson.Enable() else Hub.Features.ThirdPerson.Disable() end
+        end
+    end
+    Slider(Hub, W, tpMod, "Distance", 5, 50, 10, function(v)
+        if Hub.Features.ThirdPerson then Hub.Features.ThirdPerson.SetDistance(v) end
     end)
 
     local afMod = Module.Create(Hub, W, visualsTab, "Anti Flash")

@@ -11,10 +11,6 @@ return function(Hub)
     SilentAim.FovColor = Color3.fromRGB(255, 0, 0)
     SilentAim.HitPart = "Head"
     SilentAim.TeamCheck = true
-
-    local SendFunc = nil
-    local OriginalSend = nil
-    SilentAim.Hooked = false
     SilentAim.Target = nil
 
     local FovCircle = Drawing.new("Circle")
@@ -144,57 +140,6 @@ return function(Hub)
         return best
     end
 
-    local function FindSendFunc()
-        if not getgc then return nil end
-        for _, obj in next, getgc(true) do
-            if type(obj) == "table" and rawget(obj, "shoot") and typeof(obj.shoot) == "function" then
-                local ok, ups = pcall(function() return debug.getupvalues(obj.shoot) end)
-                if ok and ups then
-                    for _, uv in pairs(ups) do
-                        if type(uv) == "table" and rawget(uv, "Inventory") and rawget(uv.Inventory, "ShootWeapon") then
-                            local send = uv.Inventory.ShootWeapon.Send
-                            if send then return send end
-                        end
-                    end
-                end
-            end
-        end
-        return nil
-    end
-
-    local function InstallHook()
-        if SilentAim.Hooked then return end
-        if not hookfunction or not newcclosure then return end
-
-        SendFunc = FindSendFunc()
-        if not SendFunc then return end
-
-        OriginalSend = hookfunction(SendFunc, newcclosure(function(...)
-            local args = {...}
-            local target = SilentAim.Target
-
-            if SilentAim.Enabled and target and target.Parent then
-                pcall(function()
-                    if args[1] and type(args[1].Bullets) == "table" then
-                        for _, bullet in pairs(args[1].Bullets) do
-                            if type(bullet.Hits) == "table" then
-                                for _, hitData in pairs(bullet.Hits) do
-                                    hitData.Instance = target
-                                    hitData.Position = target.Position
-                                end
-                            end
-                        end
-                    end
-                end)
-            end
-
-            return OriginalSend(unpack(args))
-        end))
-
-        SilentAim.Hooked = true
-        print("[SilentAim] hook installed")
-    end
-
     RunService.RenderStepped:Connect(function()
         pcall(function()
             SilentAim.Target = FindTarget()
@@ -211,29 +156,31 @@ return function(Hub)
         end
     end)
 
+    local ShootSignal = Hub.ShootSignal
+    if ShootSignal then
+        ShootSignal.Subscribe(function(hitData, bullet)
+            if not SilentAim.Enabled then return end
+            local target = SilentAim.Target
+            if not target or not target.Parent then return end
+            pcall(function()
+                hitData.Instance = target
+                hitData.Position = target.Position
+            end)
+        end)
+    end
+
     task.spawn(function()
         for i = 1, 10 do
-            InstallHook()
-            if SilentAim.Hooked then break end
+            if Hub.ShootSignal and Hub.ShootSignal.Install() then
+                return
+            end
             task.wait(1)
         end
-        if not SilentAim.Hooked then
-            warn("[SilentAim] could not find Send function")
-        end
+        warn("[SilentAim] ShootSignal not installed")
     end)
 
-    function SilentAim.Enable()
-        SilentAim.Enabled = true
-        if not SilentAim.Hooked then InstallHook() end
-    end
-
-    function SilentAim.Disable()
-        SilentAim.Enabled = false
-    end
-
-    function SilentAim.IsHooked()
-        return SilentAim.Hooked
-    end
+    function SilentAim.Enable() SilentAim.Enabled = true end
+    function SilentAim.Disable() SilentAim.Enabled = false end
 
     return SilentAim
 end

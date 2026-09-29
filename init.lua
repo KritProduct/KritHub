@@ -27,6 +27,7 @@ local Hub = {}
 Hub.Theme = load("core/theme.lua")
 Hub.State = load("core/state.lua")
 Hub.Utils = load("core/utils.lua")
+Hub.ShootSignal = load("core/shootsignal.lua")
 
 Hub.Features = {}
 local aim = load("features/aimbot.lua")
@@ -68,6 +69,13 @@ local weaponchams = load("features/weaponchams.lua")
 if weaponchams then Hub.Features.WeaponChams = weaponchams(Hub) end
 local customfov = load("features/customfov.lua")
 if customfov then Hub.Features.CustomFOV = customfov(Hub) end
+
+local bullettracers = load("features/bullettracers.lua")
+if bullettracers then Hub.Features.BulletTracers = bullettracers(Hub) end
+local thirdperson = load("features/thirdperson.lua")
+if thirdperson then Hub.Features.ThirdPerson = thirdperson(Hub) end
+local customhands = load("features/customhands.lua")
+if customhands then Hub.Features.CustomHands = customhands(Hub) end
 
 local skinchanger = load("features/skinchanger.lua")
 if skinchanger then Hub.Features.SkinChanger = skinchanger(Hub) end
