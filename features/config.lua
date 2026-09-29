@@ -1,5 +1,4 @@
 return function(Hub)
-    local RS = game:GetService("ReplicatedStorage")
     local Config = {}
     Config.Folder = "KritHub_Configs"
     Config.Extension = ".json"
@@ -35,18 +34,25 @@ return function(Hub)
                 end
             end
 
-            for elName, el in pairs(mod.ElementsByName or {}) do
-                if el.Type ~= "button" then
-                    local val = el:Get and el:Get() or el.Value
-                    if typeof(val) == "Color3" then
-                        modData.Elements[elName] = {
-                            _type = "Color3",
-                            R = val.R,
-                            G = val.G,
-                            B = val.B,
-                        }
-                    else
-                        modData.Elements[elName] = val
+            if mod.ElementsByName then
+                for elName, el in pairs(mod.ElementsByName) do
+                    if el.Type ~= "button" then
+                        local val
+                        if el.Get then
+                            val = el:Get()
+                        else
+                            val = el.Value
+                        end
+                        if typeof(val) == "Color3" then
+                            modData.Elements[elName] = {
+                                _type = "Color3",
+                                R = val.R,
+                                G = val.G,
+                                B = val.B,
+                            }
+                        else
+                            modData.Elements[elName] = val
+                        end
                     end
                 end
             end
@@ -139,9 +145,9 @@ return function(Hub)
                     end
                 end
 
-                if modData.Elements then
+                if modData.Elements and mod.GetElement then
                     for elName, val in pairs(modData.Elements) do
-                        local el = mod.GetElement and mod:GetElement(elName)
+                        local el = mod:GetElement(elName)
                         if el and el.Set then
                             if type(val) == "table" and val._type == "Color3" then
                                 pcall(function() el:Set(Color3.new(val.R, val.G, val.B), true) end)
