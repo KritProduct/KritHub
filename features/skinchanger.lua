@@ -76,6 +76,15 @@ return function(Hub)
         return nil
     end
 
+    local function copySurfaceAppearance(sourceSA, targetSA)
+        if not sourceSA or not targetSA then return false end
+        targetSA.ColorMap = sourceSA.ColorMap
+        targetSA.NormalMap = sourceSA.NormalMap
+        targetSA.RoughnessMap = sourceSA.RoughnessMap
+        targetSA.MetalnessMap = sourceSA.MetalnessMap
+        return true
+    end
+
     local function applySkinToCurrentModel()
         if not SkinChanger.Enabled then return end
         if not SkinChanger.SelectedWeapon or not SkinChanger.SelectedSkin then return end
@@ -85,25 +94,35 @@ return function(Hub)
         if not currentModel then return end
         if currentModel.Name ~= SkinChanger.SelectedWeapon then return end
 
-        local ok, newModel = pcall(skinsModule.GetCameraModel, SkinChanger.SelectedWeapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
-        if not ok or not newModel then
+        local ok, skinModel = pcall(skinsModule.GetCameraModel, SkinChanger.SelectedWeapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+        if not ok or not skinModel then
             warn("[SkinChanger] failed to get skin model")
             return
         end
 
-        local parent = currentModel.Parent
-        if not parent then return end
+        local applied = 0
+        local missing = {}
 
-        local cf = currentModel:GetPivot()
+        for _, part in ipairs(currentModel:GetDescendants()) do
+            if part:IsA("SurfaceAppearance") then
+                local skinPart = skinModel:FindFirstChild(part.Name, true)
+                if skinPart then
+                    local skinSA = skinPart:FindFirstChildOfClass("SurfaceAppearance")
+                    if skinSA then
+                        if copySurfaceAppearance(skinSA, part) then
+                            applied = applied + 1
+                        end
+                    end
+                else
+                    table.insert(missing, part.Name)
+                end
+            end
+        end
 
-        local clone = newModel:Clone()
-        clone.Name = currentModel.Name
-        clone:PivotTo(cf)
-
-        currentModel:Destroy()
-        clone.Parent = parent
-
-        print("[SkinChanger] re-applied skin to model: " .. clone.Name)
+        print("[SkinChanger] copied " .. applied .. " SurfaceAppearance(s)")
+        if #missing > 0 then
+            print("[SkinChanger] missing parts: " .. table.concat(missing, ", "))
+        end
     end
 
     SkinChanger.Reapply = applySkinToCurrentModel
@@ -188,7 +207,7 @@ return function(Hub)
 
         task.defer(applySkinToCurrentModel)
 
-        print("[SkinChanger] applied:", weaponName, "->", skinName, "float:", SkinChanger.SelectedFloat)
+        print("[SkinChanger] applied: " .. weaponName .. " -> " .. skinName .. " float: " .. tostring(SkinChanger.SelectedFloat))
         return true
     end
 
