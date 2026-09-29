@@ -1,4 +1,5 @@
 return function(Hub)
+    local RS = game:GetService("ReplicatedStorage")
     local Config = {}
     Config.Folder = "KritHub_Configs"
     Config.Extension = ".json"
@@ -17,6 +18,41 @@ return function(Hub)
 
     local function collectSettings()
         local data = {}
+        data.Modules = {}
+
+        for name, mod in pairs(Hub.State.Modules) do
+            local modData = {
+                Enabled = mod.Enabled,
+                Bind = nil,
+                Elements = {},
+            }
+
+            if mod.Bind then
+                if typeof(mod.Bind) == "EnumItem" then
+                    modData.Bind = mod.Bind.Name
+                else
+                    modData.Bind = tostring(mod.Bind)
+                end
+            end
+
+            for elName, el in pairs(mod.ElementsByName or {}) do
+                if el.Type ~= "button" then
+                    local val = el:Get and el:Get() or el.Value
+                    if typeof(val) == "Color3" then
+                        modData.Elements[elName] = {
+                            _type = "Color3",
+                            R = val.R,
+                            G = val.G,
+                            B = val.B,
+                        }
+                    else
+                        modData.Elements[elName] = val
+                    end
+                end
+            end
+
+            data.Modules[name] = modData
+        end
 
         local A = Hub.Features.Aimbot
         if A then
@@ -82,22 +118,45 @@ return function(Hub)
             data.Xray = { Transparency = X.Transparency }
         end
 
-        if Hub.State and Hub.State.Modules then
-            data.ModuleStates = {}
-            data.ModuleBinds = {}
-            for name, mod in pairs(Hub.State.Modules) do
-                data.ModuleStates[name] = mod.Enabled
-                if mod.Bind then
-                    if typeof(mod.Bind) == "EnumItem" then
-                        data.ModuleBinds[name] = mod.Bind.Name
+        return data
+    end
+
+    local function applyModuleData(data)
+        if not data or not data.Modules then return end
+
+        for modName, modData in pairs(data.Modules) do
+            local mod = Hub.State.Modules[modName]
+            if mod then
+                if modData.Bind then
+                    if modData.Bind == "LMB" or modData.Bind == "RMB" then
+                        mod.Bind = modData.Bind
                     else
-                        data.ModuleBinds[name] = tostring(mod.Bind)
+                        local ok, keyCode = pcall(function() return Enum.KeyCode[modData.Bind] end)
+                        if ok and keyCode then mod.Bind = keyCode end
                     end
+                    if mod.SetBindDisplay then
+                        mod.SetBindDisplay(modData.Bind)
+                    end
+                end
+
+                if modData.Elements then
+                    for elName, val in pairs(modData.Elements) do
+                        local el = mod.GetElement and mod:GetElement(elName)
+                        if el and el.Set then
+                            if type(val) == "table" and val._type == "Color3" then
+                                pcall(function() el:Set(Color3.new(val.R, val.G, val.B), true) end)
+                            else
+                                pcall(function() el:Set(val, true) end)
+                            end
+                        end
+                    end
+                end
+
+                if modData.Enabled ~= nil and mod.SetEnabled then
+                    pcall(function() mod.SetEnabled(modData.Enabled, true) end)
                 end
             end
         end
-
-        return data
     end
 
     local function applySettings(data)
@@ -174,33 +233,7 @@ return function(Hub)
             if d.Transparency then X.Transparency = d.Transparency end
         end
 
-        if data.ModuleBinds and Hub.State and Hub.State.Modules then
-            for name, bindName in pairs(data.ModuleBinds) do
-                local mod = Hub.State.Modules[name]
-                if mod then
-                    if bindName == "LMB" or bindName == "RMB" then
-                        mod.Bind = bindName
-                    else
-                        local ok, keyCode = pcall(function() return Enum.KeyCode[bindName] end)
-                        if ok and keyCode then
-                            mod.Bind = keyCode
-                        end
-                    end
-                    if mod.SetBindDisplay then
-                        mod.SetBindDisplay(bindName)
-                    end
-                end
-            end
-        end
-
-        if data.ModuleStates and Hub.State and Hub.State.Modules then
-            for name, enabled in pairs(data.ModuleStates) do
-                local mod = Hub.State.Modules[name]
-                if mod and mod.SetEnabled then
-                    pcall(function() mod.SetEnabled(enabled) end)
-                end
-            end
-        end
+        applyModuleData(data)
     end
 
     function Config.Save(name)
@@ -216,8 +249,8 @@ return function(Hub)
         end
 
         local path = Config.Folder .. "/" .. name .. Config.Extension
-
         local data = collectSettings()
+
         local ok, encoded = pcall(function()
             return game:GetService("HttpService"):JSONEncode(data)
         end)
