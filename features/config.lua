@@ -251,7 +251,7 @@ return function(Hub)
         ensureFolder()
 
         if not name or name == "" then
-            name = "default"
+            name = "config_" .. os.date("%H%M%S")
         end
 
         local path = Config.Folder .. "/" .. name .. Config.Extension
@@ -318,11 +318,13 @@ return function(Hub)
         if not ok or not listed then return files end
 
         for _, path in ipairs(listed) do
-            local name = path:match("([^/\\]+)" .. Config.Extension .. "$")
-            if name then
-                table.insert(files, name)
+            local fileName = tostring(path)
+            local baseName = fileName:match("([^/\\]+)%.json$")
+            if baseName then
+                table.insert(files, baseName)
             end
         end
+
         return files
     end
 
