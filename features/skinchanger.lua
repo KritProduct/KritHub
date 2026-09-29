@@ -8,6 +8,33 @@ return function(Hub)
     SkinChanger.SelectedFloat = 0
     SkinChanger.OnApply = nil
 
+    local KNIFE_BLACKLIST = {
+        ["Karambit"] = true,
+        ["Butterfly Knife"] = true,
+        ["Flip Knife"] = true,
+        ["Gut Knife"] = true,
+        ["M9 Bayonet"] = true,
+        ["Skeleton Knife"] = true,
+        ["Stiletto Knife"] = true,
+        ["Bayonet"] = true,
+        ["Bowie Knife"] = true,
+        ["Falchion Knife"] = true,
+        ["Huntsman Knife"] = true,
+        ["Shadow Daggers"] = true,
+        ["Talon Knife"] = true,
+        ["Ursus Knife"] = true,
+        ["Navaja Knife"] = true,
+        ["Classic Knife"] = true,
+        ["Nomad Knife"] = true,
+        ["Paracord Knife"] = true,
+        ["Survival Knife"] = true,
+        ["Kukri Knife"] = true,
+    }
+
+    function SkinChanger.IsKnife(weaponName)
+        return KNIFE_BLACKLIST[weaponName] == true
+    end
+
     local function getSkinsRoot()
         local assets = RS:FindFirstChild("Assets")
         if not assets then return nil end
@@ -35,7 +62,9 @@ return function(Hub)
         if not skinsRoot then return {} end
         local list = {}
         for _, w in ipairs(skinsRoot:GetChildren()) do
-            table.insert(list, w.Name)
+            if not KNIFE_BLACKLIST[w.Name] then
+                table.insert(list, w.Name)
+            end
         end
         return list
     end
