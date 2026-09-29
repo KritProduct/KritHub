@@ -1,58 +1,60 @@
 return function(Hub)
     local RS = game:GetService("ReplicatedStorage")
-    local SkinChanger = {}
 
+    local SkinChanger = {}
     SkinChanger.Enabled = false
-    SkinChanger.AutoApply = true
     SkinChanger.SelectedWeapon = nil
     SkinChanger.SelectedSkin = nil
-    SkinChanger.SelectedCondition = "Factory New"
-    SkinChanger.OriginalSkins = {}
+    SkinChanger.SelectedFloat = 0
+    SkinChanger.AllSkins = {}
+    SkinChanger.AppliedWeapon = nil
+    SkinChanger.Hooked = false
 
-    local camConn = nil
+    local skinsModule = nil
+    local animationModule = nil
+    local originalGetCameraModel = nil
+    local originalGetWorldModel = nil
+    local originalConstruct = nil
 
-    local function GetSkinsFolder()
-        local assets = RS:FindFirstChild("Assets")
-        if not assets then return nil end
-        return assets:FindFirstChild("Skins")
+    local function ensureModules()
+        if skinsModule then return true end
+        local ok, result = pcall(function()
+            return require(RS.Database.Components.Libraries.Skins)
+        end)
+        if ok and result then
+            skinsModule = result
+        end
+        return skinsModule ~= nil
     end
 
-    function SkinChanger.GetWeapons()
-        local skins = GetSkinsFolder()
-        if not skins then return {} end
+    function SkinChanger.GetAllWeapons()
+        if not ensureModules() then return {} end
         local list = {}
-        for _, w in ipairs(skins:GetChildren()) do
-            table.insert(list, w.Name)
+        for _, w in ipairs(RS.Database.Custom.Weapons:GetChildren()) do
+            if w:IsA("ModuleScript") then
+                table.insert(list, w.Name)
+            end
         end
         return list
     end
 
     function SkinChanger.GetSkinsForWeapon(weaponName)
-        local skins = GetSkinsFolder()
-        if not skins then return {} end
-        local weapon = skins:FindFirstChild(weaponName)
-        if not weapon then return {} end
-        local list = {}
-        for _, s in ipairs(weapon:GetChildren()) do
-            table.insert(list, s.Name)
+        if not ensureModules() then return {} end
+        local ok, list = pcall(skinsModule.GetAllSkinsForWeapon, weaponName)
+        if not ok or not list then return {} end
+        local result = {}
+        for _, s in ipairs(list) do
+            if s.skin then
+                table.insert(result, {
+                    Name = s.skin,
+                    Rarity = s.rarity,
+                    Collection = s.collection,
+                    PaintId = s.paintId,
+                    Description = s.description,
+                })
+            end
         end
-        return list
-    end
-
-    function SkinChanger.GetConditions(weaponName, skinName)
-        local skins = GetSkinsFolder()
-        if not skins then return {} end
-        local weapon = skins:FindFirstChild(weaponName)
-        if not weapon then return {} end
-        local skin = weapon:FindFirstChild(skinName)
-        if not skin then return {} end
-        local view = skin:FindFirstChild("Camera")
-        if not view then return {} end
-        local list = {}
-        for _, c in ipairs(view:GetChildren()) do
-            table.insert(list, c.Name)
-        end
-        return list
+        return result
     end
 
     function SkinChanger.GetCurrentWeaponName()
@@ -66,160 +68,106 @@ return function(Hub)
         return nil
     end
 
-    function SkinChanger.GetCurrentWeaponModel()
-        local cam = workspace:FindFirstChild("Camera")
-        if not cam then return nil end
-        for _, obj in ipairs(cam:GetChildren()) do
-            if obj:IsA("Model") then
-                return obj
-            end
-        end
-        return nil
-    end
-
-    function SkinChanger.GetSkinModel(weaponName, skinName, condition)
-        local skins = GetSkinsFolder()
-        if not skins then return nil end
-        local weapon = skins:FindFirstChild(weaponName)
-        if not weapon then return nil end
-        local skin = weapon:FindFirstChild(skinName)
-        if not skin then return nil end
-        local view = skin:FindFirstChild("Camera")
-        if not view then return nil end
-        local cond = view:FindFirstChild(condition)
-        if not cond then
-            return view:GetChildren()[1]
-        end
-        return cond
-    end
-
-    local function SaveOriginal(weaponModel)
-        if SkinChanger.OriginalSkins[weaponModel] then return end
-        local saved = {}
-        local weaponFolder = weaponModel:FindFirstChild("Weapon")
-        if not weaponFolder then return end
-        local inner = weaponFolder:FindFirstChildOfClass("Model")
-        if not inner then return end
-
-        for _, part in ipairs(inner:GetDescendants()) do
-            if part:IsA("SurfaceAppearance") then
-                saved[part] = {
-                    ColorMap = part.ColorMap,
-                    NormalMap = part.NormalMap,
-                    RoughnessMap = part.RoughnessMap,
-                    MetalnessMap = part.MetalnessMap,
-                }
-            end
-        end
-        SkinChanger.OriginalSkins[weaponModel] = saved
-    end
-
-    function SkinChanger.Apply(weaponName, skinName, condition)
-        if not weaponName or not skinName then
-            print("[SkinChanger] missing weapon or skin name")
-            return false
+    local function hookModules()
+        if SkinChanger.Hooked then return end
+        if not ensureModules() then
+            warn("[SkinChanger] cannot load skins module")
+            return
         end
 
-        local weaponModel = SkinChanger.GetCurrentWeaponModel()
-        if not weaponModel then
-            print("[SkinChanger] no weapon in workspace.Camera")
-            return false
-        end
+        originalGetCameraModel = skinsModule.GetCameraModel
+        originalGetWorldModel = skinsModule.GetWorldModel
+        originalConstruct = nil
 
-        print("[SkinChanger] current weapon model:", weaponModel.Name, "| requested:", weaponName)
+        skinsModule.GetCameraModel = function(weapon, skin, float)
+            local result = originalGetCameraModel(weapon, skin, float)
 
-        if weaponModel.Name ~= weaponName then
-            print("[SkinChanger] weapon mismatch: in hands=" .. weaponModel.Name .. ", requested=" .. weaponName)
-            return false
-        end
-
-        local skinData = SkinChanger.GetSkinModel(weaponName, skinName, condition or "Factory New")
-        if not skinData then
-            print("[SkinChanger] skin model not found:", weaponName, skinName, condition)
-            return false
-        end
-
-        SaveOriginal(weaponModel)
-
-        local weaponFolder = weaponModel:FindFirstChild("Weapon")
-        if not weaponFolder then
-            print("[SkinChanger] no Weapon folder")
-            return false
-        end
-
-        local inner = weaponFolder:FindFirstChildOfClass("Model")
-        if not inner then
-            print("[SkinChanger] no inner model")
-            return false
-        end
-
-        local appliedCount = 0
-        local missing = {}
-
-        for _, part in ipairs(inner:GetDescendants()) do
-            if part:IsA("SurfaceAppearance") then
-                local skinPart = skinData:FindFirstChild(part.Name)
-                if skinPart then
-                    local skinSA = skinPart:FindFirstChildOfClass("SurfaceAppearance")
-                    if skinSA then
-                        local ok = pcall(function()
-                            part.ColorMap = skinSA.ColorMap
-                            part.NormalMap = skinSA.NormalMap
-                            part.RoughnessMap = skinSA.RoughnessMap
-                            part.MetalnessMap = skinSA.MetalnessMap
-                        end)
-                        if ok then
-                            appliedCount = appliedCount + 1
-                        end
+            if SkinChanger.Enabled and SkinChanger.SelectedWeapon and SkinChanger.SelectedSkin then
+                if weapon == SkinChanger.SelectedWeapon then
+                    local ok, overrideModel = pcall(originalGetCameraModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+                    if ok and overrideModel then
+                        return overrideModel
                     end
-                else
-                    table.insert(missing, part.Name)
                 end
             end
+
+            return result
         end
 
-        print("[SkinChanger] applied to " .. appliedCount .. " parts")
-        if #missing > 0 then
-            print("[SkinChanger] missing parts in skin:", table.concat(missing, ", "))
+        skinsModule.GetWorldModel = function(weapon, skin, float)
+            local result = originalGetWorldModel(weapon, skin, float)
+
+            if SkinChanger.Enabled and SkinChanger.SelectedWeapon and SkinChanger.SelectedSkin then
+                if weapon == SkinChanger.SelectedWeapon then
+                    local ok, overrideModel = pcall(originalGetWorldModel, weapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
+                    if ok and overrideModel then
+                        return overrideModel
+                    end
+                end
+            end
+
+            return result
         end
+
+        SkinChanger.Hooked = true
+        print("[SkinChanger] hooked GetCameraModel and GetWorldModel")
+    end
+
+    local function unhookModules()
+        if not SkinChanger.Hooked then return end
+        if skinsModule and originalGetCameraModel then
+            skinsModule.GetCameraModel = originalGetCameraModel
+        end
+        if skinsModule and originalGetWorldModel then
+            skinsModule.GetWorldModel = originalGetWorldModel
+        end
+        SkinChanger.Hooked = false
+        print("[SkinChanger] unhooked")
+    end
+
+    function SkinChanger.Apply(weaponName, skinName, float)
+        if not weaponName or not skinName then return false end
 
         SkinChanger.SelectedWeapon = weaponName
         SkinChanger.SelectedSkin = skinName
-        SkinChanger.SelectedCondition = condition or "Factory New"
+        SkinChanger.SelectedFloat = float or 0
+        SkinChanger.Enabled = true
 
-        return appliedCount > 0
+        if not SkinChanger.Hooked then
+            hookModules()
+        end
+
+        print("[SkinChanger] applied:", weaponName, "->", skinName, "float:", SkinChanger.SelectedFloat)
+        return true
     end
 
     function SkinChanger.Reset()
-        local weaponModel = SkinChanger.GetCurrentWeaponModel()
-        if not weaponModel then return end
-
-        local saved = SkinChanger.OriginalSkins[weaponModel]
-        if not saved then return end
-
-        for sa, data in pairs(saved) do
-            if sa and sa.Parent then
-                pcall(function()
-                    sa.ColorMap = data.ColorMap
-                    sa.NormalMap = data.NormalMap
-                    sa.RoughnessMap = data.RoughnessMap
-                    sa.MetalnessMap = data.MetalnessMap
-                end)
-            end
-        end
-
-        SkinChanger.OriginalSkins[weaponModel] = nil
+        SkinChanger.Enabled = false
+        SkinChanger.SelectedWeapon = nil
+        SkinChanger.SelectedSkin = nil
+        unhookModules()
         print("[SkinChanger] reset")
     end
 
     function SkinChanger.Enable()
         SkinChanger.Enabled = true
+        if not SkinChanger.Hooked then
+            hookModules()
+        end
     end
 
     function SkinChanger.Disable()
         SkinChanger.Enabled = false
-        if camConn then camConn:Disconnect() camConn = nil end
-        SkinChanger.Reset()
+    end
+
+    function SkinChanger.GetStatus()
+        return {
+            Hooked = SkinChanger.Hooked,
+            Enabled = SkinChanger.Enabled,
+            Weapon = SkinChanger.SelectedWeapon,
+            Skin = SkinChanger.SelectedSkin,
+            Float = SkinChanger.SelectedFloat,
+        }
     end
 
     return SkinChanger
