@@ -1,6 +1,10 @@
 return function(Hub)
-    local ESP = {}
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local LocalPlayer = Players.LocalPlayer
+    local Camera = workspace.CurrentCamera
 
+    local ESP = {}
     ESP.Enabled = false
     ESP.Box = true
     ESP.Name = true
@@ -12,10 +16,6 @@ return function(Hub)
     ESP.MaxDist = 2000
     ESP.EnemyColor = Color3.fromRGB(255, 60, 60)
     ESP.FriendColor = Color3.fromRGB(60, 255, 60)
-
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local LocalPlayer = Players.LocalPlayer
 
     local cache = {}
 
@@ -42,6 +42,18 @@ return function(Hub)
         local me = LocalPlayer.Character
         if not me then return nil end
         return GetTeam(me)
+    end
+
+    local function GetDisplayName(ch)
+        local charName = ch:GetAttribute("CharacterName")
+        if charName and charName ~= "" then
+            return charName
+        end
+        local plr = Players:GetPlayerFromCharacter(ch)
+        if plr then
+            return plr.DisplayName or plr.Name
+        end
+        return ch.Name
     end
 
     local function Create(ch)
@@ -94,7 +106,7 @@ return function(Hub)
     local function Remove(ch)
         local d = cache[ch]
         if not d then return end
-        for _, o in pairs(d) do o:Remove() end
+        for _, o in pairs(d) do pcall(function() o:Remove() end) end
         cache[ch] = nil
     end
 
@@ -180,7 +192,7 @@ return function(Hub)
                             end
 
                             if ESP.Name then
-                                d.Name.Text = ch:GetAttribute("CharacterName") or "?"
+                                d.Name.Text = GetDisplayName(ch)
                                 d.Name.Color = color
                                 d.Name.Position = tl + Vector2.new(size.X / 2, -16)
                                 d.Name.Visible = true
@@ -254,7 +266,9 @@ return function(Hub)
         end
     end
 
-    RunService.RenderStepped:Connect(Update)
+    RunService.RenderStepped:Connect(function()
+        pcall(Update)
+    end)
 
     function ESP.Enable() ESP.Enabled = true end
     function ESP.Disable() ESP.Enabled = false end
