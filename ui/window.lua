@@ -206,7 +206,7 @@ function Window.Create(Hub)
     sidebarDivider.BackgroundColor3 = T.Border
     sidebarDivider.BorderSizePixel = 0
     sidebarDivider.ZIndex = 5
-    sidebarDivider.Parent = W.Sidebar
+    sidebarDivider.Parent = W.Sidebar.Parent
 
     W.Content = Instance.new("Frame")
     W.Content.Size = UDim2.new(1, -140, 1, -48)
