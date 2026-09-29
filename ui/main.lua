@@ -1,4 +1,4 @@
-﻿local UI = {}
+local UI = {}
 
 function UI.Build(Hub)
     local Players = game:GetService("Players")
