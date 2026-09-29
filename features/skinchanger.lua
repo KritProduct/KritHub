@@ -76,53 +76,56 @@ return function(Hub)
         return nil
     end
 
-    local function copySurfaceAppearance(sourceSA, targetSA)
-        if not sourceSA or not targetSA then return false end
-        targetSA.ColorMap = sourceSA.ColorMap
-        targetSA.NormalMap = sourceSA.NormalMap
-        targetSA.RoughnessMap = sourceSA.RoughnessMap
-        targetSA.MetalnessMap = sourceSA.MetalnessMap
-        return true
+    local function getSkinsRoot()
+        local assets = RS:FindFirstChild("Assets")
+        if not assets then return nil end
+        return assets:FindFirstChild("Skins")
     end
 
     local function applySkinToCurrentModel()
         if not SkinChanger.Enabled then return end
         if not SkinChanger.SelectedWeapon or not SkinChanger.SelectedSkin then return end
-        if not ensureModules() then return end
 
         local currentModel = getCurrentWeaponModel()
         if not currentModel then return end
         if currentModel.Name ~= SkinChanger.SelectedWeapon then return end
 
-        local ok, skinModel = pcall(skinsModule.GetCameraModel, SkinChanger.SelectedWeapon, SkinChanger.SelectedSkin, SkinChanger.SelectedFloat or 0)
-        if not ok or not skinModel then
-            warn("[SkinChanger] failed to get skin model")
-            return
+        local skinsRoot = getSkinsRoot()
+        if not skinsRoot then return end
+
+        local weaponFolder = skinsRoot:FindFirstChild(SkinChanger.SelectedWeapon)
+        if not weaponFolder then return end
+
+        local skinFolder = weaponFolder:FindFirstChild(SkinChanger.SelectedSkin)
+        if not skinFolder then return end
+
+        local cameraFolder = skinFolder:FindFirstChild("Camera")
+        if not cameraFolder then return end
+
+        local factoryNew = cameraFolder:FindFirstChild("Factory New")
+        if not factoryNew then
+            factoryNew = cameraFolder:GetChildren()[1]
         end
+        if not factoryNew then return end
 
         local applied = 0
-        local missing = {}
 
-        for _, part in ipairs(currentModel:GetDescendants()) do
-            if part:IsA("SurfaceAppearance") then
-                local skinPart = skinModel:FindFirstChild(part.Name, true)
-                if skinPart then
-                    local skinSA = skinPart:FindFirstChildOfClass("SurfaceAppearance")
-                    if skinSA then
-                        if copySurfaceAppearance(skinSA, part) then
-                            applied = applied + 1
+        for _, sa in ipairs(factoryNew:GetChildren()) do
+            if sa:IsA("SurfaceAppearance") then
+                local targetPart = currentModel:FindFirstChild(sa.Name, true)
+                if targetPart and (targetPart:IsA("BasePart") or targetPart:IsA("MeshPart")) then
+                    for _, old in ipairs(targetPart:GetChildren()) do
+                        if old:IsA("SurfaceAppearance") then
+                            old:Destroy()
                         end
                     end
-                else
-                    table.insert(missing, part.Name)
+                    sa:Clone().Parent = targetPart
+                    applied = applied + 1
                 end
             end
         end
 
-        print("[SkinChanger] copied " .. applied .. " SurfaceAppearance(s)")
-        if #missing > 0 then
-            print("[SkinChanger] missing parts: " .. table.concat(missing, ", "))
-        end
+        print("[SkinChanger] applied " .. applied .. " SurfaceAppearance(s) to " .. currentModel.Name)
     end
 
     SkinChanger.Reapply = applySkinToCurrentModel
