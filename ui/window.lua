@@ -192,15 +192,21 @@ function Window.Create(Hub)
     sidebarList.Padding = UDim.new(0, 1)
     sidebarList.SortOrder = Enum.SortOrder.LayoutOrder
     sidebarList.Parent = W.Sidebar
-    U.Padding(W.Sidebar, 6)
+
+    local sidebarPadding = Instance.new("UIPadding")
+    sidebarPadding.PaddingTop = UDim.new(0, 6)
+    sidebarPadding.PaddingBottom = UDim.new(0, 6)
+    sidebarPadding.PaddingLeft = UDim.new(0, 6)
+    sidebarPadding.PaddingRight = UDim.new(0, 6)
+    sidebarPadding.Parent = W.Sidebar
 
     local sidebarLine = Instance.new("Frame")
-    sidebarLine.Size = UDim2.new(0, 1, 1, 0)
-    sidebarLine.Position = UDim2.new(1, -1, 0, 0)
+    sidebarLine.Size = UDim2.new(0, 1, 1, -48)
+    sidebarLine.Position = UDim2.new(0, 140, 0, 48)
     sidebarLine.BackgroundColor3 = T.Border
     sidebarLine.BorderSizePixel = 0
     sidebarLine.ZIndex = 3
-    sidebarLine.Parent = W.Sidebar
+    sidebarLine.Parent = W.Main
 
     W.Content = Instance.new("Frame")
     W.Content.Size = UDim2.new(1, -140, 1, -48)
