@@ -15,6 +15,11 @@ return function(Hub)
     Aimbot.FOVColor = Color3.fromRGB(255, 255, 255)
     Aimbot.Bind = Enum.KeyCode.E
 
+    local RANDOM_PARTS = {
+        "Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
+        "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg",
+    }
+
     local FOVCircle = Drawing.new("Circle")
     FOVCircle.Thickness = 2
     FOVCircle.Color = Aimbot.FOVColor
@@ -48,8 +53,24 @@ return function(Hub)
         return GetTeam(me)
     end
 
+    local function PickRandomPart(ch)
+        local shuffled = {}
+        for i = 1, #RANDOM_PARTS do shuffled[i] = RANDOM_PARTS[i] end
+        for i = #shuffled, 2, -1 do
+            local j = math.random(i)
+            shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+        end
+        for _, name in ipairs(shuffled) do
+            local p = ch:FindFirstChild(name)
+            if p then return p end
+        end
+        return ch:FindFirstChild("Head")
+    end
+
     local function GetTargetPart(ch)
-        if Aimbot.TargetPart == "Head" then
+        if Aimbot.TargetPart == "Random" then
+            return PickRandomPart(ch)
+        elseif Aimbot.TargetPart == "Head" then
             return ch:FindFirstChild("Head")
         elseif Aimbot.TargetPart == "Torso" then
             return ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso") or ch:FindFirstChild("HumanoidRootPart")

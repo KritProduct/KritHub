@@ -74,7 +74,7 @@ function UI.Build(Hub)
     Toggle(Hub, W, aim, "Ignore Teammates", true, function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.FriendCheck = v end
     end)
-    Dropdown(Hub, W, aim, "Target Part", {"Head", "Torso", "Legs"}, "Head", function(v)
+    Dropdown(Hub, W, aim, "Target Part", {"Head", "Torso", "Legs", "Random"}, "Head", function(v)
         if Hub.Features.Aimbot then Hub.Features.Aimbot.TargetPart = v end
     end)
     Slider(Hub, W, aim, "Field of View", 20, 800, 300, function(v)
@@ -96,7 +96,7 @@ function UI.Build(Hub)
     Toggle(Hub, W, silent, "Team Check", true, function(v)
         if Hub.Features.SilentAim then Hub.Features.SilentAim.TeamCheck = v end
     end)
-    Dropdown(Hub, W, silent, "Hit Part", {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart"}, "Head", function(v)
+    Dropdown(Hub, W, silent, "Hit Part", {"Head", "UpperTorso", "LowerTorso", "HumanoidRootPart", "Random"}, "Head", function(v)
         if Hub.Features.SilentAim then Hub.Features.SilentAim.HitPart = v end
     end)
     Toggle(Hub, W, silent, "Use FOV Circle", false, function(v)

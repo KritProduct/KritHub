@@ -13,6 +13,11 @@ return function(Hub)
     SilentAim.TeamCheck = true
     SilentAim.Target = nil
 
+    local RANDOM_PARTS = {
+        "Head", "UpperTorso", "LowerTorso", "HumanoidRootPart",
+        "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg",
+    }
+
     local FovCircle = Drawing.new("Circle")
     FovCircle.Thickness = 1
     FovCircle.Filled = false
@@ -42,6 +47,29 @@ return function(Hub)
         local me = LocalPlayer.Character
         if not me then return nil end
         return GetTeam(me)
+    end
+
+    local function PickRandomPart(ch)
+        local shuffled = {}
+        for i = 1, #RANDOM_PARTS do shuffled[i] = RANDOM_PARTS[i] end
+        for i = #shuffled, 2, -1 do
+            local j = math.random(i)
+            shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+        end
+        for _, name in ipairs(shuffled) do
+            local p = ch:FindFirstChild(name)
+            if p then return p end
+        end
+        return ch:FindFirstChild("Head")
+    end
+
+    local function GetHitPart(ch)
+        if SilentAim.HitPart == "Random" then
+            return PickRandomPart(ch)
+        end
+        return ch:FindFirstChild(SilentAim.HitPart)
+            or ch:FindFirstChild("Head")
+            or ch:FindFirstChild("HumanoidRootPart")
     end
 
     local function IsVisible(ch, targetPart)
@@ -118,9 +146,7 @@ return function(Hub)
                     if t == myTeam then isFriend = true end
                 end
                 if not isFriend then
-                    local part = ch:FindFirstChild(SilentAim.HitPart)
-                        or ch:FindFirstChild("Head")
-                        or ch:FindFirstChild("HumanoidRootPart")
+                    local part = GetHitPart(ch)
                     if part then
                         local sp, onScreen = cam:WorldToViewportPoint(part.Position)
                         if onScreen then
