@@ -109,6 +109,42 @@ function UI.Build(Hub)
         if Hub.Features.SilentAim then Hub.Features.SilentAim.FovRadius = v end
     end)
 
+    local function refreshPriorityList()
+        local names = {"None"}
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= Players.LocalPlayer then
+                table.insert(names, plr.Name)
+            end
+        end
+        return names
+    end
+
+    local priorityDropdown = Dropdown(Hub, W, silent, "Priority Target", refreshPriorityList(), "None", function(v)
+        if Hub.Features.SilentAim then
+            if v == "None" then
+                Hub.Features.SilentAim.SetPriority(nil)
+            else
+                Hub.Features.SilentAim.SetPriority(v)
+            end
+        end
+    end)
+
+    Button(Hub, W, silent, "Refresh Priority List", function()
+        if priorityDropdown and priorityDropdown.Set then
+            local names = refreshPriorityList()
+            if priorityDropdown.Options then
+                for i = #priorityDropdown.Options, 1, -1 do
+                    priorityDropdown.Options[i] = nil
+                end
+                for i, n in ipairs(names) do
+                    priorityDropdown.Options[i] = n
+                end
+            end
+            priorityDropdown.Set("None", true)
+            if Hub.Features.SilentAim then Hub.Features.SilentAim.SetPriority(nil) end
+        end
+    end)
+
     local wmods = Module.Create(Hub, W, combatTab, "Weapon Mods")
     wmods.OnToggle = function(v)
         if Hub.Features.WeaponMods then
